@@ -1,0 +1,358 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ──────────────────────────────────────────────────────────────────
+   SomaLibrary · warm editorial design system
+   Paper canvas, Fraunces display type, teal + brass accents.
+   ────────────────────────────────────────────────────────────────── */
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-canvas text-ink font-sans antialiased;
+    /* Two very soft warm washes so the paper is never a flat fill */
+    background-image:
+      radial-gradient(ellipse 70% 55% at 50% -10%, rgba(255, 253, 248, 0.9), transparent),
+      radial-gradient(circle at 100% 0%, rgba(168, 124, 60, 0.07), transparent 34rem),
+      radial-gradient(circle at 0% 62%, rgba(15, 118, 110, 0.055), transparent 30rem);
+    background-attachment: fixed;
+  }
+
+  /* Grain is a fixed overlay so it never scrolls or tiles visibly */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.035;
+    background-image: theme('backgroundImage.grain');
+    background-size: 180px 180px;
+  }
+
+  #root {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Editorial default: headings are set in the serif */
+  h1,
+  h2,
+  h3 {
+    @apply font-display;
+    font-optical-sizing: auto;
+  }
+
+  ::selection {
+    @apply bg-accent/25 text-ink;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-primary/45 ring-offset-2 ring-offset-canvas;
+  }
+
+  /* Slimmer, warmer scrollbars on desktop */
+  @media (pointer: fine) {
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: #D8CCB6 transparent;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* ── Type helpers ───────────────────────────────────────────── */
+
+  /* Small-caps label used above every section heading */
+  .eyebrow {
+    @apply inline-flex items-center gap-2 text-eyebrow font-semibold uppercase text-accent-dark;
+  }
+
+  .eyebrow::before {
+    content: '';
+    @apply block h-px w-6 bg-accent/60;
+  }
+
+  .eyebrow-plain {
+    @apply text-eyebrow font-semibold uppercase text-ink-faint;
+  }
+
+  .section-title {
+    @apply font-display text-title-sm font-semibold tracking-tight text-ink;
+  }
+
+  .display-title {
+    @apply font-display text-title font-semibold text-ink;
+  }
+
+  .lede {
+    @apply text-base leading-relaxed text-ink-soft;
+  }
+
+  .label {
+    @apply mb-1.5 block text-xs font-medium text-ink-soft;
+  }
+
+  .rule {
+    @apply border-0 border-t border-divider;
+  }
+
+  /* Underline that draws in on hover — used for editorial links */
+  .link-quiet {
+    @apply relative font-medium text-ink transition-colors hover:text-primary;
+  }
+
+  /* ── Buttons ────────────────────────────────────────────────── */
+
+  .btn {
+    @apply inline-flex select-none items-center justify-center gap-2 rounded-btn text-sm font-semibold transition-all duration-200;
+    min-height: 44px;
+    padding: 0 20px;
+  }
+
+  .btn-primary {
+    @apply btn bg-primary text-white hover:bg-primary-dark active:translate-y-px;
+    box-shadow: 0 1px 2px rgba(10, 79, 74, 0.24), 0 10px 20px -12px rgba(10, 79, 74, 0.55);
+  }
+
+  .btn-secondary {
+    @apply btn bg-accent-light text-accent-dark hover:bg-accent/20 active:translate-y-px;
+  }
+
+  .btn-outline {
+    @apply btn border border-divider bg-surface text-ink hover:border-primary/45 hover:text-primary-dark active:translate-y-px;
+  }
+
+  .btn-ink {
+    @apply btn bg-ink text-canvas hover:bg-ink-soft active:translate-y-px;
+  }
+
+  .btn-danger {
+    @apply btn border border-status-danger/25 bg-surface text-status-danger hover:bg-status-danger hover:text-white;
+  }
+
+  .btn-ghost {
+    @apply btn text-ink-soft hover:bg-inset hover:text-ink;
+  }
+
+  .btn-disabled {
+    @apply btn cursor-not-allowed bg-inset text-ink-faint;
+  }
+
+  /* ── Forms ──────────────────────────────────────────────────── */
+
+  .input {
+    @apply w-full rounded-btn border border-divider bg-surface px-3.5 text-sm text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-primary focus:ring-4 focus:ring-primary/10;
+    min-height: 44px;
+  }
+
+  select.input {
+    @apply cursor-pointer appearance-none pr-9;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236A5D4E' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+  }
+
+  /* ── Surfaces ───────────────────────────────────────────────── */
+
+  .card {
+    @apply rounded-card border border-divider bg-surface shadow-soft;
+  }
+
+  .card-shadow {
+    @apply rounded-card border border-divider/70 bg-surface shadow-card;
+  }
+
+  /* Inset panel — used for quiet asides on the paper */
+  .panel {
+    @apply rounded-card border border-divider bg-inset/60 p-4;
+  }
+
+  /* ── Chips / filters ────────────────────────────────────────── */
+
+  .chip {
+    @apply inline-flex cursor-pointer select-none items-center gap-1.5 whitespace-nowrap rounded-full border border-divider bg-surface px-3.5 py-1.5 text-xs font-semibold text-ink-soft transition-colors hover:border-ink/25 hover:text-ink;
+  }
+
+  .chip-active {
+    @apply border-ink bg-ink text-canvas hover:border-ink hover:text-canvas;
+  }
+
+  /* Underline tab used for page-level switches */
+  .tab-underline {
+    @apply relative -mb-px whitespace-nowrap border-b-2 border-transparent px-1 pb-2.5 pt-1 text-sm font-semibold text-ink-faint transition-colors hover:text-ink;
+  }
+
+  .tab-underline-active {
+    @apply border-primary text-ink;
+  }
+}
+
+@layer utilities {
+  /* Drop-cap opening paragraph, used once per page at most */
+  .drop-cap::first-letter {
+    @apply float-left mr-2 mt-1 font-display text-5xl font-semibold leading-[0.8] text-primary;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .text-pretty {
+    text-wrap: pretty;
+  }
+
+  /* Numerals should never jiggle in tables or prices */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   Book covers
+   A real cover image layers over a designed typographic jacket, so the
+   grid never shows a broken image and the Somali catalogue still looks
+   like real books. All jacket type scales with the cover via cqw units.
+   ────────────────────────────────────────────────────────────────── */
+
+.cover {
+  aspect-ratio: 2 / 3;
+  background-color: theme('colors.inset');
+}
+
+.jacket {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  container-type: inline-size;
+}
+
+.jacket-inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 9.5cqw;
+}
+
+/* Hairline print border, inset from the trim */
+.jacket-frame {
+  position: absolute;
+  inset: 5.5cqw;
+  border: 1px solid currentColor;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* Motif bleeds off the bottom-right corner — deliberately off-centre */
+.jacket-motif {
+  position: absolute;
+  right: -17cqw;
+  bottom: -12cqw;
+  width: 86cqw;
+  height: 86cqw;
+  opacity: 0.16;
+}
+
+.jacket-spine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 8%;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.34),
+    rgba(0, 0, 0, 0.08) 58%,
+    transparent
+  );
+}
+
+.jacket-sheen {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(118deg, rgba(255, 255, 255, 0.14) 0%, transparent 44%);
+}
+
+.jacket-grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.08;
+  background-image: theme('backgroundImage.grain');
+  background-size: 90px 90px;
+}
+
+.jacket-title {
+  font-family: theme('fontFamily.display');
+  /* Sized so the longest catalogue word ("Aqoonla'aanta", 13 characters at
+     -0.022em tracking) fits the 81cqw text box without wrapping mid-word.
+     The box is 100cqw minus 2 x 9.5cqw of jacket padding. */
+  font-size: 11.5cqw;
+  font-weight: 600;
+  line-height: 1.06;
+  letter-spacing: -0.022em;
+  text-wrap: balance;
+  font-optical-sizing: auto;
+  /* Net for any future title with a longer unbreakable word */
+  overflow-wrap: break-word;
+}
+
+.jacket-rule {
+  height: 1px;
+  width: 30cqw;
+  margin-bottom: 4.5cqw;
+  opacity: 0.6;
+}
+
+.jacket-author {
+  font-size: 6cqw;
+  font-weight: 600;
+  line-height: 1.3;
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  opacity: 0.9;
+}
+
+.jacket-imprint {
+  margin-top: 2.6cqw;
+  font-size: 4.4cqw;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+}
+
+/* Jacket type is hidden as a cover scales down, rather than rendering as
+   sub-6px mush. Both thresholds land at ~9px of type:
+   the imprint is 4.4cqw, so it clears 9px only past ~210px;
+   the author is 6cqw, so it clears 9px past ~150px.
+   Small thumbnails therefore show title and author, the tiniest show the
+   title alone — the way a real jacket degrades when you shrink it. */
+@container (max-width: 210px) {
+  .jacket-imprint {
+    display: none;
+  }
+}
+
+@container (max-width: 150px) {
+  .jacket-author,
+  .jacket-rule {
+    display: none;
+  }
+
+  .jacket-inner {
+    justify-content: flex-start;
+  }
+}
