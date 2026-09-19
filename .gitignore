@@ -1,0 +1,26 @@
+# ── Dependencies ──
+node_modules/
+
+# ── Build output ──
+frontend/dist/
+backend/dist/
+*.tsbuildinfo
+
+# ── Environment & secrets ──
+.env
+.env.local
+.env.*.local
+
+# ── Private PDF/covers storage (never commit) ──
+storage/
+backend/storage/
+
+# ── Logs ──
+*.log
+npm-debug.log*
+
+# ── OS / editor ──
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
