@@ -69,7 +69,7 @@
 | Audit Logs | `/admin/audit` |
 | Settings | `/admin/settings` |
 
-Language toggle `[ Soomaali | English ]` across the whole app (persisted in `localStorage` as `somalibrary.lang`, default `so`).
+Language toggle `[ Soomaali | English ]` across the whole app (persisted in `localStorage` as `somalibrary.lang`, default `en`).
 
 ## ⚡ Quick Start
 
