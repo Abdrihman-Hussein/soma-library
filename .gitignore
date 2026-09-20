@@ -24,3 +24,9 @@ npm-debug.log*
 Thumbs.db
 .vscode/
 .idea/
+
+# ── Agent skills (local installs via skills CLI, never commit) ──
+.agents/skills/
+.claude/skills/
+agent/skills/
+skills-lock.json
