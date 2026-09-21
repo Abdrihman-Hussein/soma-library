@@ -132,7 +132,14 @@
     "of": "ka mid ah",
     "accessTitle": "Gelitaan la xaday",
     "accessBody": "Waxaad u baahan tahay rukun firfiran ama iibsasho si aad u akhrido buuggan.",
-    "choosePlan": "Dooro qorshe"
+    "choosePlan": "Dooro qorshe",
+    "loading": "PDF-ka waa la soo dejinayaa…",
+    "locked": "PDF-kan wuxuu u baahan yahay gelitaan. Gal akoon leh rukun ama iibsi.",
+    "missing": "Buuggan weli PDF looma dejin.",
+    "offline": "API-ga lama xiriiri karo, markaa PDF-ka lama soo dejin karo. Bilow backend-ka:",
+    "openNewTab": "Fur tab cusub",
+    "previous": "Hore",
+    "next": "Xiga"
   },
   "plans": {
     "title": "Rukun",

@@ -132,7 +132,14 @@
     "of": "of",
     "accessTitle": "Access restricted",
     "accessBody": "You need an active subscription or a purchase to read this book.",
-    "choosePlan": "Choose a plan"
+    "choosePlan": "Choose a plan",
+    "loading": "Loading the PDF…",
+    "locked": "This PDF needs access. Sign in with an account that has a subscription or a purchase.",
+    "missing": "No PDF has been attached to this book yet.",
+    "offline": "Cannot reach the API, so the PDF cannot load. Start the backend:",
+    "openNewTab": "Open in new tab",
+    "previous": "Previous",
+    "next": "Next"
   },
   "plans": {
     "title": "Subscription",
