@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import * as db from '../../data/db'
 import { Cover } from '../../components/Cover'
 import { Icon, StatusPill } from '../../components/ui'
+import { useT } from '../../i18n'
 
 // Simple inline SVG line chart (no chart lib — keeps the bundle light)
 function RevenueChart() {
@@ -103,6 +104,7 @@ function SectionCard({
 }
 
 export default function AdminDashboard() {
+  const { t, lang } = useT()
   const users = db.allUsers()
   const books = db.allBooks()
   const payments = db.allPayments()
@@ -121,13 +123,13 @@ export default function AdminDashboard() {
       {/* Header */}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="eyebrow-plain">Platform overview · September 2026</p>
-          <h1 className="display-title mt-2">Dashboard</h1>
+          <p className="eyebrow-plain">{t('admin.dashboard.overview')}</p>
+          <h1 className="display-title mt-2">{t('admin.dashboard.title')}</h1>
         </div>
         <div className="flex items-center gap-2">
           <Link to="/admin/books/new" className="btn-primary !min-h-10 text-[13px]">
             <Icon.Plus className="h-4 w-4" />
-            Add book
+            {t('admin.dashboard.addBook')}
           </Link>
         </div>
       </div>
@@ -136,30 +138,30 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <KpiCard
           icon={<Icon.Users className="h-4 w-4" />}
-          label="Total users"
+          label={t('admin.dashboard.totalUsers')}
           value={totalUsers.toLocaleString()}
-          delta="live"
+          delta={t('admin.dashboard.live')}
           deltaUp
         />
         <KpiCard
           icon={<Icon.Shield className="h-4 w-4" />}
-          label="Active subscribers"
+          label={t('admin.dashboard.activeSubs')}
           value={activeSubs.toLocaleString()}
-          delta="live"
+          delta={t('admin.dashboard.live')}
           deltaUp
         />
         <KpiCard
           icon={<Icon.Book className="h-4 w-4" />}
-          label="Titles published"
+          label={t('admin.dashboard.titlesPublished')}
           value={String(books.filter((b) => b.status === 'PUBLISHED').length)}
-          delta="live"
+          delta={t('admin.dashboard.live')}
           deltaUp
         />
         <KpiCard
           icon={<Icon.Card className="h-4 w-4" />}
-          label="Revenue (all time)"
+          label={t('admin.dashboard.revenueAllTime')}
           value={`$${(bookRevenue + subRevenue).toFixed(2)}`}
-          delta="live"
+          delta={t('admin.dashboard.live')}
           deltaUp
         />
       </div>
@@ -167,15 +169,15 @@ export default function AdminDashboard() {
       {/* Charts + popular */}
       <div className="grid gap-5 lg:grid-cols-3">
         <SectionCard
-          title="Revenue — last 6 months"
+          title={t('admin.dashboard.revenue6m')}
           className="lg:col-span-2"
           action={
             <div className="flex items-center gap-4 text-[11px] text-ink-soft">
               <span className="flex items-center gap-1.5">
-                <span className="h-0.5 w-4 rounded bg-primary" /> Subscription
+                <span className="h-0.5 w-4 rounded bg-primary" /> {t('admin.dashboard.legendSub')}
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="h-0.5 w-4 rounded bg-accent" /> Books
+                <span className="h-0.5 w-4 rounded bg-accent" /> {t('admin.dashboard.legendBooks')}
               </span>
             </div>
           }
@@ -185,7 +187,7 @@ export default function AdminDashboard() {
           </div>
         </SectionCard>
 
-        <SectionCard title="Popular books">
+        <SectionCard title={t('admin.dashboard.popularBooks')}>
           <div className="space-y-3 p-5">
             {popular.map((b, i) => (
               <div key={b.id} className="flex items-center gap-3">
@@ -206,26 +208,26 @@ export default function AdminDashboard() {
 
       {/* Secondary KPIs */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <KpiCard icon={<Icon.Cart className="h-4 w-4" />} label="Total purchases" value={String(payments.filter((p) => p.type === 'BOOK_PURCHASE').length)} />
+        <KpiCard icon={<Icon.Cart className="h-4 w-4" />} label={t('admin.dashboard.totalPurchases')} value={String(payments.filter((p) => p.type === 'BOOK_PURCHASE').length)} />
         <KpiCard
           icon={<Icon.BarChart className="h-4 w-4" />}
-          label="Subscription revenue"
+          label={t('admin.dashboard.subRevenue')}
           value={`$${subRevenue.toFixed(2)}`}
         />
-        <KpiCard icon={<Icon.Store className="h-4 w-4" />} label="Book revenue" value={`$${bookRevenue.toFixed(2)}`} />
+        <KpiCard icon={<Icon.Store className="h-4 w-4" />} label={t('admin.dashboard.bookRevenue')} value={`$${bookRevenue.toFixed(2)}`} />
         <KpiCard
           icon={<Icon.Library className="h-4 w-4" />}
-          label="Library access active"
+          label={t('admin.dashboard.libraryActive')}
           value={activeSubs.toLocaleString()}
         />
       </div>
 
       {/* Recent payments */}
       <SectionCard
-        title="Recent payments"
+        title={t('admin.dashboard.recentPayments')}
         action={
           <Link to="/admin/payments" className="text-xs font-semibold text-primary-dark hover:text-primary">
-            View all
+            {t('admin.dashboard.viewAll')}
           </Link>
         }
       >
@@ -233,12 +235,12 @@ export default function AdminDashboard() {
           <table className="w-full min-w-max text-sm">
             <thead>
               <tr className="border-b border-divider bg-inset/40 text-left text-[10px] uppercase tracking-[0.1em] text-ink-faint">
-                <th className="px-5 py-3 font-semibold">Reference</th>
-                <th className="px-5 py-3 font-semibold">User</th>
-                <th className="px-5 py-3 font-semibold">Type</th>
-                <th className="px-5 py-3 font-semibold">Amount</th>
-                <th className="px-5 py-3 font-semibold">Method</th>
-                <th className="px-5 py-3 font-semibold">Status</th>
+                <th className="px-5 py-3 font-semibold">{t('admin.dashboard.ref')}</th>
+                <th className="px-5 py-3 font-semibold">{t('admin.dashboard.user')}</th>
+                <th className="px-5 py-3 font-semibold">{t('admin.dashboard.type')}</th>
+                <th className="px-5 py-3 font-semibold">{t('admin.dashboard.amount')}</th>
+                <th className="px-5 py-3 font-semibold">{t('admin.dashboard.method')}</th>
+                <th className="px-5 py-3 font-semibold">{t('admin.dashboard.status')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-divider">
@@ -248,7 +250,7 @@ export default function AdminDashboard() {
                   <td className="px-5 py-3 text-xs font-medium text-ink">{db.getUser(p.userId)?.name ?? '—'}</td>
                   <td className="px-5 py-3">
                     <span className="rounded-[3px] bg-primary-light px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-primary-dark">
-                      {p.type === 'SUBSCRIPTION' ? 'Subscription' : 'Book'}
+                      {p.type === 'SUBSCRIPTION' ? t('admin.dashboard.typeSub') : t('admin.dashboard.typeBook')}
                     </span>
                   </td>
                   <td className="tnum px-5 py-3 font-semibold text-ink">${p.amount.toFixed(2)}</td>
@@ -265,10 +267,10 @@ export default function AdminDashboard() {
 
       {/* Activity */}
       <SectionCard
-        title="Latest activity"
+        title={t('admin.dashboard.latestActivity')}
         action={
           <Link to="/admin/audit" className="text-xs font-semibold text-primary-dark hover:text-primary">
-            Audit logs
+            {t('admin.dashboard.auditLogs')}
           </Link>
         }
       >
@@ -282,7 +284,7 @@ export default function AdminDashboard() {
                 {l.entity} — {l.details}
               </span>
               <span className="hidden shrink-0 text-ink-faint md:block">
-                {new Date(l.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                {new Date(l.timestamp).toLocaleDateString(lang === 'so' ? 'so-SO' : 'en-US', { month: 'short', day: 'numeric' })}
               </span>
             </div>
           ))}

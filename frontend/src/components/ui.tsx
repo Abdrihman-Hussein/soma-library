@@ -142,12 +142,12 @@ export const Icon = {
 // ── Language switch ────────────────────────────────────────────────
 
 export function LanguageSwitch({ compact = false }: { compact?: boolean }) {
-  const { lang, setLang } = useT()
+  const { lang, setLang, t } = useT()
   return (
     <div
       className="inline-flex items-center rounded-btn border border-divider bg-surface p-0.5"
       role="group"
-      aria-label="Language"
+      aria-label={t('common.language')}
     >
       {(['so', 'en'] as const).map((l) => (
         <button
@@ -385,8 +385,9 @@ export function EmptyState({
 // ── Breadcrumbs ────────────────────────────────────────────────────
 
 export function Breadcrumbs({ items }: { items: { to?: string; label: string }[] }) {
+  const { t } = useT()
   return (
-    <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-2 text-[11px] text-ink-faint">
+    <nav aria-label={t('common.breadcrumb')} className="flex flex-wrap items-center gap-2 text-[11px] text-ink-faint">
       {items.map((item, i) => (
         <span key={`${item.label}-${i}`} className="flex items-center gap-2">
           {i > 0 && <span className="text-divider">/</span>}

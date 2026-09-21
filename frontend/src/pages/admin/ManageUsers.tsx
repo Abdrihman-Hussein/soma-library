@@ -2,9 +2,11 @@ import { useMemo, useState } from 'react'
 import { useApp } from '../../context/AppContext'
 import * as db from '../../data/db'
 import { Icon, StatusPill } from '../../components/ui'
+import { useT } from '../../i18n'
 
 export default function ManageUsers() {
   const { user: me, toast } = useApp()
+  const { t } = useT()
   const [q, setQ] = useState('')
   const [roleFilter, setRoleFilter] = useState<'all' | 'reader' | 'admin'>('all')
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'suspended'>('all')
@@ -36,12 +38,12 @@ export default function ManageUsers() {
     const target = db.getUser(userId)
     if (!target) return
     if (target.id === me?.id) {
-      toast('You cannot suspend your own account', 'error')
+      toast(t('admin.users.suspendOwn'), 'error')
       return
     }
-    if (status === 'suspended' && !window.confirm(`Suspend ${target.name}? They lose library access immediately.`)) return
+    if (status === 'suspended' && !window.confirm(t('admin.users.confirmSuspend', { name: target.name }))) return
     db.setUserStatus(userId, status, actor)
-    toast(`${target.name} ${status === 'active' ? 'reinstated' : 'suspended'}`, 'success')
+    toast(t(status === 'active' ? 'admin.users.reinstated' : 'admin.users.suspendedToast', { name: target.name }), 'success')
     refresh()
   }
 
@@ -49,37 +51,37 @@ export default function ManageUsers() {
     const target = db.getUser(userId)
     if (!target || target.id === me?.id) return
     db.setUserRole(userId, role, actor)
-    toast(`${target.name} is now ${role}`, 'success')
+    toast(t('admin.users.roleSet', { name: target.name, role: t(role === 'reader' ? 'admin.users.reader' : 'admin.users.admin') }), 'success')
     refresh()
   }
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold text-ink">Users ({users.length})</h1>
+      <h1 className="text-xl font-bold text-ink">{t('admin.users.title', { count: users.length })}</h1>
 
       {/* Search + filters */}
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative min-w-56 flex-1">
           <Icon.Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-faint" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search name, email, phone..." className="input pl-9" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('admin.users.searchPh')} className="input pl-9" />
         </div>
-        <select aria-label="Filter by role" className="input w-40" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value as typeof roleFilter)}>
-          <option value="all">Role: All</option>
-          <option value="reader">Reader</option>
-          <option value="admin">Admin</option>
+        <select aria-label={t('admin.users.filterRole')} className="input w-40" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value as typeof roleFilter)}>
+          <option value="all">{t('admin.users.roleAll')}</option>
+          <option value="reader">{t('admin.users.reader')}</option>
+          <option value="admin">{t('admin.users.admin')}</option>
         </select>
-        <select aria-label="Filter by status" className="input w-40" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}>
-          <option value="all">Status: All</option>
-          <option value="active">Active</option>
-          <option value="suspended">Suspended</option>
+        <select aria-label={t('admin.users.filterStatus')} className="input w-40" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}>
+          <option value="all">{t('admin.users.statusAll')}</option>
+          <option value="active">{t('admin.users.active')}</option>
+          <option value="suspended">{t('admin.users.suspended')}</option>
         </select>
       </div>
 
       {/* Stat chips */}
       <div className="flex flex-wrap gap-2">
-        <span className="chip !cursor-default">Active {users.filter((u) => u.status === 'active').length}</span>
-        <span className="chip !cursor-default">Suspended {users.filter((u) => u.status === 'suspended').length}</span>
-        <span className="chip !cursor-default">With subscription {users.filter((u) => db.activeSubscription(u.id)).length}</span>
+        <span className="chip !cursor-default">{t('admin.users.chipActive', { count: users.filter((u) => u.status === 'active').length })}</span>
+        <span className="chip !cursor-default">{t('admin.users.chipSuspended', { count: users.filter((u) => u.status === 'suspended').length })}</span>
+        <span className="chip !cursor-default">{t('admin.users.chipWithSub', { count: users.filter((u) => db.activeSubscription(u.id)).length })}</span>
       </div>
 
       <div className="grid gap-4 xl:grid-cols-3">
@@ -89,11 +91,11 @@ export default function ManageUsers() {
             <table className="w-full min-w-160 text-sm">
               <thead>
                 <tr className="border-b border-divider bg-canvas text-left text-[11px] uppercase tracking-wide text-ink-faint">
-                  <th className="px-3 py-2.5 font-semibold">User</th>
-                  <th className="px-3 py-2.5 font-semibold">Phone</th>
-                  <th className="px-3 py-2.5 font-semibold">Subscription</th>
-                  <th className="px-3 py-2.5 font-semibold">Purchases</th>
-                  <th className="px-3 py-2.5 font-semibold">Status</th>
+                  <th className="px-3 py-2.5 font-semibold">{t('admin.users.user')}</th>
+                  <th className="px-3 py-2.5 font-semibold">{t('admin.users.phone')}</th>
+                  <th className="px-3 py-2.5 font-semibold">{t('admin.users.subscription')}</th>
+                  <th className="px-3 py-2.5 font-semibold">{t('admin.users.purchases')}</th>
+                  <th className="px-3 py-2.5 font-semibold">{t('admin.users.status')}</th>
                   <th className="px-3 py-2.5" />
                 </tr>
               </thead>
@@ -116,7 +118,7 @@ export default function ManageUsers() {
                           <div>
                             <p className="font-semibold">
                               {u.name}
-                              {u.id === me?.id && <span className="ml-1.5 text-[10px] font-normal text-primary">(you)</span>}
+                              {u.id === me?.id && <span className="ml-1.5 text-[10px] font-normal text-primary">{t('admin.users.you')}</span>}
                             </p>
                             <p className="text-[11px] text-ink-faint">{u.email}</p>
                           </div>
@@ -127,10 +129,10 @@ export default function ManageUsers() {
                         {sub ? (
                           <div>
                             <StatusPill status={sub.status} />
-                            <p className="mt-0.5 text-[10px] text-ink-faint">till {sub.expiresAt}</p>
+                            <p className="mt-0.5 text-[10px] text-ink-faint">{t('admin.users.till', { date: sub.expiresAt })}</p>
                           </div>
                         ) : (
-                          <span className="text-xs text-ink-faint">None</span>
+                          <span className="text-xs text-ink-faint">{t('admin.users.none')}</span>
                         )}
                       </td>
                       <td className="px-3 py-2.5 text-xs">
@@ -139,7 +141,7 @@ export default function ManageUsers() {
                       </td>
                       <td className="px-3 py-2.5">
                         <span className={`rounded-[3px] px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] ${u.status === 'active' ? 'bg-[#E4EFE5] text-[#2B5C3D]' : 'bg-[#F7E2DC] text-[#8A3225]'}`}>
-                          {u.status}
+                          {u.status === 'active' ? t('admin.users.active') : t('admin.users.suspended')}
                         </span>
                       </td>
                       <td className="px-3 py-2.5 text-right">
@@ -149,7 +151,7 @@ export default function ManageUsers() {
                   )
                 })}
                 {filtered.length === 0 && (
-                  <tr><td colSpan={6} className="px-3 py-10 text-center text-sm text-ink-faint">No users match.</td></tr>
+                  <tr><td colSpan={6} className="px-3 py-10 text-center text-sm text-ink-faint">{t('admin.users.noMatch')}</td></tr>
                 )}
               </tbody>
             </table>
@@ -171,24 +173,24 @@ export default function ManageUsers() {
               </div>
 
               <div>
-                <p className="label">Subscription</p>
+                <p className="label">{t('admin.users.detailSub')}</p>
                 <div className="rounded-btn bg-canvas p-3 text-xs">
                   {selectedSub ? (
                     <div className="flex items-center justify-between gap-2">
                       <span className="font-semibold text-ink">{db.getPlan(selectedSub.planId)?.name ?? selectedSub.planId}</span>
                       <StatusPill status={selectedSub.status} />
-                      <span className="text-ink-faint">till {selectedSub.expiresAt}</span>
+                      <span className="text-ink-faint">{t('admin.users.till', { date: selectedSub.expiresAt })}</span>
                     </div>
                   ) : (
-                    <span className="text-ink-faint">No plan</span>
+                    <span className="text-ink-faint">{t('admin.users.noPlan')}</span>
                   )}
                 </div>
               </div>
 
               <div>
-                <p className="label">Recent payments</p>
+                <p className="label">{t('admin.users.recentPayments')}</p>
                 <div className="space-y-1.5 text-xs">
-                  {selectedPayments.length === 0 && <p className="text-ink-faint">None</p>}
+                  {selectedPayments.length === 0 && <p className="text-ink-faint">{t('admin.users.none')}</p>}
                   {selectedPayments.map((p) => (
                     <div key={p.id} className="flex justify-between gap-2">
                       <span className="truncate text-ink-soft">{p.reference}</span>
@@ -200,14 +202,14 @@ export default function ManageUsers() {
 
               <div className="flex gap-2">
                 <select
-                  aria-label="Change role"
+                  aria-label={t('admin.users.changeRole')}
                   className="input !min-h-9 flex-1 text-xs"
                   value={selected.role}
                   onChange={(e) => setRole(selected.id, e.target.value as 'reader' | 'admin')}
                   disabled={selected.id === me?.id}
                 >
-                  <option value="reader">Reader</option>
-                  <option value="admin">Admin</option>
+                  <option value="reader">{t('admin.users.reader')}</option>
+                  <option value="admin">{t('admin.users.admin')}</option>
                 </select>
                 {selected.status === 'active' ? (
                   <button
@@ -215,25 +217,25 @@ export default function ManageUsers() {
                     disabled={selected.id === me?.id}
                     className="btn-danger !min-h-9 flex-1 text-xs disabled:opacity-40"
                   >
-                    Suspend
+                    {t('admin.users.suspend')}
                   </button>
                 ) : (
                   <button
                     onClick={() => setStatus(selected.id, 'active')}
                     className="btn-outline !min-h-9 flex-1 text-xs"
                   >
-                    Reinstate
+                    {t('admin.users.reinstate')}
                   </button>
                 )}
               </div>
               {selected.id === me?.id && (
-                <p className="text-center text-[10px] text-ink-faint">You cannot suspend or change your own account.</p>
+                <p className="text-center text-[10px] text-ink-faint">{t('admin.users.ownAccount')}</p>
               )}
             </div>
           ) : (
             <div className="flex flex-col items-center gap-2 py-12 text-center">
               <Icon.User className="h-8 w-8 text-ink-faint" />
-              <p className="text-xs text-ink-soft">Select a user to see details and manage their account</p>
+              <p className="text-xs text-ink-soft">{t('admin.users.selectHint')}</p>
             </div>
           )}
         </div>
