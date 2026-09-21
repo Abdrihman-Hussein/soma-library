@@ -2,6 +2,7 @@ import { useState } from 'react'
 import * as db from '../../data/db'
 import { Cover } from '../../components/Cover'
 import { Icon } from '../../components/ui'
+import { useT } from '../../i18n'
 
 function BarChart() {
   const data = [
@@ -51,6 +52,7 @@ function Donut({ segments }: { segments: { label: string; value: number; color: 
 }
 
 export default function Reports() {
+  const { t } = useT()
   const [tab, setTab] = useState<'store' | 'library'>('store')
 
   const books = db.allBooks()
@@ -72,12 +74,12 @@ export default function Reports() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-bold text-ink">Reports</h1>
+        <h1 className="text-xl font-bold text-ink">{t('admin.reports.title')}</h1>
         <div className="flex items-center gap-2">
           <button className="input flex w-64 items-center gap-2 text-left text-sm text-ink-faint">
-            <Icon.Clock className="h-4 w-4" /> 1 Jan 2026 – 16 Sep 2026
+            <Icon.Clock className="h-4 w-4" /> {t('admin.reports.dateRange')}
           </button>
-          <button className="btn-outline !min-h-10 text-sm"><Icon.Download className="h-4 w-4" /> Export CSV</button>
+          <button className="btn-outline !min-h-10 text-sm"><Icon.Download className="h-4 w-4" /> {t('admin.reports.exportCsv')}</button>
         </div>
       </div>
 
@@ -89,7 +91,7 @@ export default function Reports() {
             onClick={() => setTab(tb)}
             className={`rounded-full px-4 py-1.5 text-sm font-semibold capitalize transition-colors ${tab === tb ? 'bg-ink text-canvas' : 'border border-divider bg-surface text-ink-soft hover:text-ink'}`}
           >
-            {tb}
+            {t(tb === 'store' ? 'admin.reports.tabStore' : 'admin.reports.tabLibrary')}
           </button>
         ))}
       </div>
@@ -98,10 +100,10 @@ export default function Reports() {
         <>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             {[
-              { label: 'Book Revenue', value: '$12,830' },
-              { label: 'Orders', value: '892' },
-              { label: 'Avg. Order Value', value: '$14.38' },
-              { label: 'Top Category', value: 'Self Help' },
+              { label: t('admin.reports.bookRevenue'), value: '$12,830' },
+              { label: t('admin.reports.orders'), value: '892' },
+              { label: t('admin.reports.avgOrder'), value: '$14.38' },
+              { label: t('admin.reports.topCategory'), value: t('admin.reports.catSelfHelp') },
             ].map((k) => (
               <div key={k.label} className="card p-4">
                 <p className="text-lg font-bold text-ink">{k.value}</p>
@@ -111,25 +113,25 @@ export default function Reports() {
           </div>
           <div className="grid gap-4 lg:grid-cols-2">
             <div className="card p-4">
-              <h2 className="section-title mb-3">Sales by month</h2>
+              <h2 className="section-title mb-3">{t('admin.reports.salesByMonth')}</h2>
               <BarChart />
             </div>
             <div className="card p-4">
-              <h2 className="section-title mb-3">Sales by category</h2>
+              <h2 className="section-title mb-3">{t('admin.reports.salesByCategory')}</h2>
               <Donut
                 segments={[
-                  { label: 'Self Help', value: 34, color: '#0F766E' },
-                  { label: 'Technology', value: 26, color: '#3E8E82' },
-                  { label: 'History', value: 18, color: '#A87C3C' },
-                  { label: 'Poetry', value: 12, color: '#C9A87C' },
-                  { label: 'Other', value: 10, color: '#9E9082' },
+                  { label: t('admin.reports.catSelfHelp'), value: 34, color: '#0F766E' },
+                  { label: t('admin.reports.catTechnology'), value: 26, color: '#3E8E82' },
+                  { label: t('admin.reports.catHistory'), value: 18, color: '#A87C3C' },
+                  { label: t('admin.reports.catPoetry'), value: 12, color: '#C9A87C' },
+                  { label: t('admin.reports.catOther'), value: 10, color: '#9E9082' },
                 ]}
               />
             </div>
           </div>
           <div className="grid gap-4 lg:grid-cols-2">
             <div className="card p-4">
-              <h2 className="section-title mb-3">Most-purchased books</h2>
+              <h2 className="section-title mb-3">{t('admin.reports.mostPurchased')}</h2>
               <div className="space-y-2.5">
                 {topBooks.map((b, i) => (
                   <div key={b.id} className="flex items-center gap-3">
@@ -142,15 +144,15 @@ export default function Reports() {
                       <p className="text-[10px] text-ink-faint">{b.author}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs font-bold">{(b.popularity * 3.1).toFixed(0)} sales</p>
-                      <p className="text-[10px] text-ink-faint">${((b.price ?? 0) * b.popularity * 2.4).toFixed(0)} rev</p>
+                      <p className="text-xs font-bold">{t('admin.reports.sales', { count: (b.popularity * 3.1).toFixed(0) })}</p>
+                      <p className="text-[10px] text-ink-faint">{t('admin.reports.rev', { amount: ((b.price ?? 0) * b.popularity * 2.4).toFixed(0) })}</p>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
             <div className="card p-4">
-              <h2 className="section-title mb-3">Top spending users</h2>
+              <h2 className="section-title mb-3">{t('admin.reports.topSpenders')}</h2>
               <div className="space-y-2.5">
                 {topUsers.map(({ u, total }, i) => (
                   <div key={u.id} className="flex items-center gap-3">
@@ -161,7 +163,7 @@ export default function Reports() {
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-xs font-semibold">{u.name}</p>
                       <p className="text-[10px] text-ink-faint">
-                        {payments.filter((p) => p.userId === u.id && p.type === 'BOOK_PURCHASE' && p.status === 'SUCCESS').length} orders
+                        {payments.filter((p) => p.userId === u.id && p.type === 'BOOK_PURCHASE' && p.status === 'SUCCESS').length} {t('admin.reports.orders')}
                       </p>
                     </div>
                     <span className="text-xs font-bold text-primary-dark">${total.toFixed(2)}</span>
@@ -175,10 +177,10 @@ export default function Reports() {
         <>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             {[
-              { label: 'Active Subscriptions', value: '312' },
-              { label: 'New Subscribers (30d)', value: '38' },
-              { label: 'Expired (30d)', value: '96' },
-              { label: 'Reads (30d)', value: '4,210' },
+              { label: t('admin.reports.activeSubs'), value: '312' },
+              { label: t('admin.reports.newSubs30'), value: '38' },
+              { label: t('admin.reports.expired30'), value: '96' },
+              { label: t('admin.reports.reads30'), value: '4,210' },
             ].map((k) => (
               <div key={k.label} className="card p-4">
                 <p className="text-lg font-bold text-ink">{k.value}</p>
@@ -188,22 +190,21 @@ export default function Reports() {
           </div>
           <div className="grid gap-4 lg:grid-cols-2">
             <div className="card p-4">
-              <h2 className="section-title mb-3">Subscription starts vs cancellations</h2>
+              <h2 className="section-title mb-3">{t('admin.reports.subsVsCancel')}</h2>
               <BarChart />
             </div>
             <div className="card p-4">
-              <h2 className="section-title mb-3">Active vs expired</h2>
+              <h2 className="section-title mb-3">{t('admin.reports.activeVsExpired')}</h2>
               <Donut
                 segments={[
-                  { label: 'Active', value: 312, color: '#0F766E' },
-                  { label: 'Expired', value: 96, color: '#B57A1F' },
-                  { label: 'Cancelled', value: 18, color: '#9E9082' },
+                  { label: t('admin.reports.segActive'), value: 312, color: '#0F766E' },
+                  { label: t('admin.reports.segExpired'), value: 96, color: '#B57A1F' },
+                  { label: t('admin.reports.segCancelled'), value: 18, color: '#9E9082' },
                 ]}
               />
             </div>
           </div>
-          <div className="card p-4">
-            <h2 className="section-title mb-3">Most-read books</h2>
+          <div className="card p-4">              <h2 className="section-title mb-3">{t('admin.reports.mostRead')}</h2>
             <div className="space-y-2.5">
               {topBooks.map((b, i) => (
                 <div key={b.id} className="flex items-center gap-3">
@@ -212,7 +213,7 @@ export default function Reports() {
                     <Cover book={b} size="S" />
                   </div>
                   <p className="min-w-0 flex-1 truncate text-xs font-semibold">{b.title}</p>
-                  <span className="text-xs font-bold text-primary-dark">{(b.popularity * 5.7).toFixed(0)} reads</span>
+                  <span className="text-xs font-bold text-primary-dark">{t('admin.reports.reads', { count: (b.popularity * 5.7).toFixed(0) })}</span>
                 </div>
               ))}
             </div>

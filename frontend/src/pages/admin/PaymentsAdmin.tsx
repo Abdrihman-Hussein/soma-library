@@ -2,9 +2,11 @@ import { useMemo, useState } from 'react'
 import { useApp } from '../../context/AppContext'
 import * as db from '../../data/db'
 import { StatusPill } from '../../components/ui'
+import { useT } from '../../i18n'
 
 export default function PaymentsAdmin() {
   const { user, toast } = useApp()
+  const { t, lang } = useT()
   const [tick, setTick] = useState(0)
   const [typeFilter, setTypeFilter] = useState<'all' | 'SUBSCRIPTION' | 'BOOK_PURCHASE'>('all')
   const [statusFilter, setStatusFilter] = useState<'all' | 'SUCCESS' | 'FAILED' | 'REFUNDED'>('all')
@@ -24,47 +26,47 @@ export default function PaymentsAdmin() {
   const refunded = payments.filter((p) => p.status === 'REFUNDED')
 
   const onRefund = (id: string, ref: string, amount: number) => {
-    if (!window.confirm(`Refund ${ref} ($${amount.toFixed(2)})? The user keeps or loses access per your policy — this marks the payment refunded.`)) return
+    if (!window.confirm(t('admin.payments.confirmRefund', { ref, amount: amount.toFixed(2) }))) return
     db.refundPayment(id, actor)
-    toast(`${ref} refunded`, 'success')
+    toast(t('admin.payments.refundedToast', { ref }), 'success')
     refresh()
   }
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-ink">Payments</h1>
+        <h1 className="text-xl font-bold text-ink">{t('admin.payments.title')}</h1>
         <div className="flex gap-2">
           <select
-            aria-label="Filter by type"
+            aria-label={t('admin.payments.filterType')}
             className="input !min-h-9 w-40 text-sm"
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value as typeof typeFilter)}
           >
-            <option value="all">Type: All</option>
-            <option value="SUBSCRIPTION">Subscription</option>
-            <option value="BOOK_PURCHASE">Book purchase</option>
+            <option value="all">{t('admin.payments.typeAll')}</option>
+            <option value="SUBSCRIPTION">{t('admin.payments.subscription')}</option>
+            <option value="BOOK_PURCHASE">{t('admin.payments.bookPurchase')}</option>
           </select>
           <select
-            aria-label="Filter by status"
+            aria-label={t('admin.payments.filterStatus')}
             className="input !min-h-9 w-40 text-sm"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
           >
-            <option value="all">Status: All</option>
-            <option value="SUCCESS">Success</option>
-            <option value="FAILED">Failed</option>
-            <option value="REFUNDED">Refunded</option>
+            <option value="all">{t('admin.payments.statusAll')}</option>
+            <option value="SUCCESS">{t('admin.payments.success')}</option>
+            <option value="FAILED">{t('admin.payments.failed')}</option>
+            <option value="REFUNDED">{t('admin.payments.refunded')}</option>
           </select>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[
-          { label: 'Volume (all time)', value: `$${volume.toFixed(2)}` },
-          { label: 'Successful', value: String(success.length) },
-          { label: 'Failed', value: String(payments.filter((p) => p.status === 'FAILED').length) },
-          { label: 'Refunded', value: String(refunded.length) },
+          { label: t('admin.payments.volume'), value: `$${volume.toFixed(2)}` },
+          { label: t('admin.payments.successful'), value: String(success.length) },
+          { label: t('admin.payments.failedLbl'), value: String(payments.filter((p) => p.status === 'FAILED').length) },
+          { label: t('admin.payments.refundedLbl'), value: String(refunded.length) },
         ].map((k) => (
           <div key={k.label} className="card p-4">
             <p className="text-lg font-bold">{k.value}</p>
@@ -78,13 +80,13 @@ export default function PaymentsAdmin() {
           <table className="w-full min-w-180 text-sm">
             <thead>
               <tr className="border-b border-divider bg-canvas text-left text-[11px] uppercase tracking-wide text-ink-faint">
-                <th className="px-4 py-2.5 font-semibold">Ref</th>
-                <th className="px-4 py-2.5 font-semibold">User</th>
-                <th className="px-4 py-2.5 font-semibold">Type</th>
-                <th className="px-4 py-2.5 font-semibold">Amount</th>
-                <th className="px-4 py-2.5 font-semibold">Method</th>
-                <th className="px-4 py-2.5 font-semibold">Status</th>
-                <th className="px-4 py-2.5 font-semibold">Date</th>
+                <th className="px-4 py-2.5 font-semibold">{t('admin.payments.ref')}</th>
+                <th className="px-4 py-2.5 font-semibold">{t('admin.payments.user')}</th>
+                <th className="px-4 py-2.5 font-semibold">{t('admin.payments.type')}</th>
+                <th className="px-4 py-2.5 font-semibold">{t('admin.payments.amount')}</th>
+                <th className="px-4 py-2.5 font-semibold">{t('admin.payments.method')}</th>
+                <th className="px-4 py-2.5 font-semibold">{t('admin.payments.status')}</th>
+                <th className="px-4 py-2.5 font-semibold">{t('admin.payments.date')}</th>
                 <th className="px-4 py-2.5" />
               </tr>
             </thead>
@@ -97,14 +99,14 @@ export default function PaymentsAdmin() {
                     <td className="px-4 py-2.5 text-xs font-semibold">{u?.name ?? p.userId}</td>
                     <td className="px-4 py-2.5">
                       <span className="rounded-[3px] bg-primary-light px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-primary-dark">
-                        {p.type === 'SUBSCRIPTION' ? 'Subscription' : 'Book'}
+                        {p.type === 'SUBSCRIPTION' ? t('admin.payments.typeSub') : t('admin.payments.typeBook')}
                       </span>
                     </td>
                     <td className="tnum px-4 py-2.5 font-bold">${p.amount.toFixed(2)}</td>
                     <td className="px-4 py-2.5 text-xs text-ink-soft">{p.method}</td>
                     <td className="px-4 py-2.5"><StatusPill status={p.status} /></td>
                     <td className="px-4 py-2.5 text-xs text-ink-faint">
-                      {new Date(p.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      {new Date(p.createdAt).toLocaleDateString(lang === 'so' ? 'so-SO' : 'en-US', { month: 'short', day: 'numeric' })}
                     </td>
                     <td className="px-4 py-2.5 text-right">
                       {p.status === 'SUCCESS' && (
@@ -112,7 +114,7 @@ export default function PaymentsAdmin() {
                           onClick={() => onRefund(p.id, p.reference, p.amount)}
                           className="rounded px-2 py-1 text-[11px] font-semibold text-status-danger transition-colors hover:bg-[#F7E2DC]"
                         >
-                          Refund
+                          {t('admin.payments.refund')}
                         </button>
                       )}
                     </td>
@@ -120,7 +122,7 @@ export default function PaymentsAdmin() {
                 )
               })}
               {rows.length === 0 && (
-                <tr><td colSpan={8} className="px-4 py-10 text-center text-sm text-ink-faint">No payments match this filter.</td></tr>
+                <tr><td colSpan={8} className="px-4 py-10 text-center text-sm text-ink-faint">{t('admin.payments.empty')}</td></tr>
               )}
             </tbody>
           </table>

@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import * as db from '../../data/db'
 import { allCategories, createBook, getBook, jacketForBook, updateBook } from '../../data/db'
 import { useApp } from '../../context/AppContext'
+import { useT } from '../../i18n'
 import { Button, Field, Icon, Toggle } from '../../components/ui'
 import { apiUrl, authHeaders } from '../../lib/api'
 
@@ -13,6 +14,7 @@ export default function AddEditBook() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { user, toast } = useApp()
+  const { t, lang: uiLang } = useT()
   const editing = Boolean(id)
   const existing = id ? getBook(id) : undefined
   const actor = user?.name ?? 'Admin'
@@ -38,17 +40,17 @@ export default function AddEditBook() {
     }
   }, [id, existing, navigate])
 
-  const previewTitle = title || 'Untitled book'
-  const previewAuthor = author || 'Unknown author'
+  const previewTitle = title || t('admin.bookForm.untitled')
+  const previewAuthor = author || t('admin.bookForm.unknownAuthor')
   const preset = jacketForBook(existing?.id ?? previewTitle)
 
   const onSave = async (asDraft: boolean) => {
     if (!title.trim() || !author.trim()) {
-      toast('Title and author are required', 'error')
+      toast(t('admin.bookForm.required'), 'error')
       return
     }
     if (!selectedPdf && !pdfPath) {
-      toast('Please select a PDF before saving this book.', 'error')
+      toast(t('admin.bookForm.pdfRequired'), 'error')
       return
     }
 
@@ -64,11 +66,11 @@ export default function AddEditBook() {
           body: formData,
         })
         const payload = await response.json() as { pdfPath?: string; error?: string }
-        if (!response.ok || !payload.pdfPath) throw new Error(payload.error ?? 'PDF upload failed.')
+        if (!response.ok || !payload.pdfPath) throw new Error(payload.error ?? t('admin.bookForm.uploadFailed'))
         savedPdfPath = payload.pdfPath
         setPdfPath(savedPdfPath)
       } catch (error) {
-        toast(error instanceof Error ? error.message : 'PDF upload failed.', 'error')
+        toast(error instanceof Error ? error.message : t('admin.bookForm.uploadFailed'), 'error')
         return
       } finally {
         setUploading(false)
@@ -93,10 +95,10 @@ export default function AddEditBook() {
     }
     if (editing && existing) {
       updateBook(existing.id, input, actor)
-      toast('Book updated', 'success')
+      toast(t('admin.bookForm.updated'), 'success')
     } else {
       createBook(input, actor)
-      toast('Book added to catalogue', 'success')
+      toast(t('admin.bookForm.added'), 'success')
     }
     navigate('/admin/books')
   }
@@ -107,18 +109,20 @@ export default function AddEditBook() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <nav className="flex items-center gap-2 text-[11px] uppercase tracking-[0.12em] text-ink-faint">
-            <Link to="/admin/books" className="hover:text-primary">Books</Link>
+            <Link to="/admin/books" className="hover:text-primary">{t('admin.bookForm.books')}</Link>
             <span className="text-divider">/</span>
-            <span className="text-ink-soft">{editing ? 'Edit' : 'New'}</span>
+            <span className="text-ink-soft">{editing ? t('admin.bookForm.edit') : t('admin.bookForm.new')}</span>
           </nav>
-          <h1 className="display-title mt-3">{editing ? 'Edit book' : 'Add book'}</h1>
+          <h1 className="display-title mt-3">{editing ? t('admin.bookForm.editBook') : t('admin.bookForm.addBook')}</h1>
           <p className="mt-1.5 text-sm text-ink-soft">
-            Catalogue entry with availability in the Library, the Store, or both.
+            {t('admin.bookForm.tagline')}
           </p>
         </div>
         <div className="flex gap-2">
-          <Link to="/admin/books" className="btn-outline !min-h-10 text-[13px]">Cancel</Link>
-          <Button className="!min-h-10 text-[13px]" onClick={() => void onSave(false)} disabled={uploading}>{uploading ? 'Uploading PDF...' : 'Save book'}</Button>
+          <Link to="/admin/books" className="btn-outline !min-h-10 text-[13px]">{t('admin.bookForm.cancel')}</Link>
+          <Button className="!min-h-10 text-[13px]" onClick={() => void onSave(false)} disabled={uploading}>
+            {uploading ? t('admin.bookForm.uploading') : t('admin.bookForm.save')}
+          </Button>
         </div>
       </div>
 
@@ -126,39 +130,39 @@ export default function AddEditBook() {
         {/* Form */}
         <div className="space-y-5 lg:col-span-3">
           <section className="rounded-card border border-divider bg-surface p-6">
-            <h2 className="section-title">Book info</h2>
+            <h2 className="section-title">{t('admin.bookForm.info')}</h2>
             <div className="mt-5 space-y-4">
-              <Field label="Title" required value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Atomic Habits" />
-              <Field label="Author" required value={author} onChange={(e) => setAuthor(e.target.value)} placeholder="James Clear" />
+              <Field label={t('admin.bookForm.title')} required value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Atomic Habits" />
+              <Field label={t('admin.bookForm.author')} required value={author} onChange={(e) => setAuthor(e.target.value)} placeholder="James Clear" />
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label htmlFor="book-subject" className="label">Subject</label>
+                  <label htmlFor="book-subject" className="label">{t('admin.bookForm.subject')}</label>
                   <select id="book-subject" className="input" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
                     {allCategories().map((c) => (
-                      <option key={c.id} value={c.id}>{c.nameEn}</option>
+                      <option key={c.id} value={c.id}>{db.categoryName(c.id, uiLang)}</option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label htmlFor="book-language" className="label">Language</label>
+                  <label htmlFor="book-language" className="label">{t('admin.bookForm.language')}</label>
                   <select id="book-language" className="input" value={lang} onChange={(e) => setLang(e.target.value as 'so' | 'en')}>
-                    <option value="en">English</option>
-                    <option value="so">Somali</option>
+                    <option value="en">{t('admin.bookForm.english')}</option>
+                    <option value="so">{t('admin.bookForm.somali')}</option>
                   </select>
                 </div>
-                <Field label="Year" type="number" value={year} onChange={(e) => setYear(e.target.value)} placeholder="2018" />
-                <Field label="Pages" type="number" value={pages} onChange={(e) => setPages(e.target.value)} placeholder="200" />
+                <Field label={t('admin.bookForm.year')} type="number" value={year} onChange={(e) => setYear(e.target.value)} placeholder="2018" />
+                <Field label={t('admin.bookForm.pages')} type="number" value={pages} onChange={(e) => setPages(e.target.value)} placeholder="200" />
               </div>
             </div>
           </section>
 
           <section className="rounded-card border border-divider bg-surface p-6">
-            <h2 className="section-title">Description</h2>
+            <h2 className="section-title">{t('admin.bookForm.description')}</h2>
             <div className="mt-4">
               <textarea
                 className="input min-h-28 resize-y"
-                placeholder="Book description…"
+                placeholder={t('admin.bookForm.descPh')}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
               />
@@ -166,12 +170,12 @@ export default function AddEditBook() {
           </section>
 
           <section className="rounded-card border border-divider bg-surface p-6">
-            <h2 className="section-title">Files</h2>
+            <h2 className="section-title">{t('admin.bookForm.files')}</h2>
 
             <label className="mt-5 flex cursor-pointer flex-col items-center gap-2 rounded-card border-2 border-dashed border-primary/35 bg-primary-light/25 p-7 text-center transition-colors hover:border-primary">
               <Icon.Download className="h-6 w-6 rotate-180 text-primary" />
-              <span className="text-sm font-semibold text-ink">Drop a PDF here or browse</span>
-              <span className="text-[11px] text-ink-faint">Max 50 MB · stored privately, never public</span>
+              <span className="text-sm font-semibold text-ink">{t('admin.bookForm.dropPdf')}</span>
+              <span className="text-[11px] text-ink-faint">{t('admin.bookForm.pdfNote')}</span>
               <input
                 type="file"
                 accept="application/pdf"
@@ -182,7 +186,7 @@ export default function AddEditBook() {
                   if (file.type !== 'application/pdf' || !file.name.toLowerCase().endsWith('.pdf')) {
                     setSelectedPdf(null)
                     e.target.value = ''
-                    toast('Only PDF files are allowed.', 'error')
+                    toast(t('admin.bookForm.pdfOnly'), 'error')
                     return
                   }
                   setSelectedPdf(file)
@@ -194,38 +198,38 @@ export default function AddEditBook() {
               <div className="mt-3 flex items-center gap-3 rounded-btn bg-inset/60 px-4 py-3">
                 <Icon.FileText className="h-4 w-4 text-primary" />
                 <span className="flex-1 truncate text-xs font-medium text-ink">{selectedPdf.name}</span>
-                <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-status-success">Selected</span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-status-success">{t('admin.bookForm.selected')}</span>
               </div>
             )}
             {!selectedPdf && existing && pdfPath && (
               <p className="mt-3 text-[11px] text-ink-faint">
-                Stored file: {existing.pdfPath}
+                {t('admin.bookForm.storedFile', { file: existing.pdfPath })}
               </p>
             )}
           </section>
 
           <section className="rounded-card border border-divider bg-surface p-6">
-            <h2 className="section-title">Availability</h2>
+            <h2 className="section-title">{t('admin.bookForm.availability')}</h2>
             <div className="mt-5 space-y-3">
               <div className="flex items-center justify-between gap-4 rounded-btn border border-divider p-4">
                 <div>
-                  <p className="text-sm font-semibold text-ink">Library (subscription)</p>
-                  <p className="text-[11px] text-ink-faint">Readable with an active subscription</p>
+                  <p className="text-sm font-semibold text-ink">{t('admin.bookForm.libraryOpt')}</p>
+                  <p className="text-[11px] text-ink-faint">{t('admin.bookForm.libraryHint')}</p>
                 </div>
-                <Toggle on={libraryEnabled} onToggle={() => setLibraryEnabled((v) => !v)} label="Library" />
+                <Toggle on={libraryEnabled} onToggle={() => setLibraryEnabled((v) => !v)} label={t('admin.bookForm.libToggle')} />
               </div>
 
               <div className="flex items-center justify-between gap-4 rounded-btn border border-divider p-4">
                 <div>
-                  <p className="text-sm font-semibold text-ink">Store (purchase)</p>
-                  <p className="text-[11px] text-ink-faint">Buy individually in USD</p>
+                  <p className="text-sm font-semibold text-ink">{t('admin.bookForm.storeOpt')}</p>
+                  <p className="text-[11px] text-ink-faint">{t('admin.bookForm.storeHint')}</p>
                 </div>
-                <Toggle on={storeEnabled} onToggle={() => setStoreEnabled((v) => !v)} label="Store" />
+                <Toggle on={storeEnabled} onToggle={() => setStoreEnabled((v) => !v)} label={t('admin.bookForm.storeToggle')} />
               </div>
 
               {storeEnabled && (
                 <div>
-                  <label htmlFor="book-price" className="label">Store price (USD)</label>
+                  <label htmlFor="book-price" className="label">{t('admin.bookForm.priceUsd')}</label>
                   <div className="relative">
                     <span aria-hidden="true" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-semibold text-ink-faint">$</span>
                     <input
@@ -240,7 +244,7 @@ export default function AddEditBook() {
               )}
               {!libraryEnabled && !storeEnabled && (
                 <p className="rounded-btn bg-[#F6EAD3] px-4 py-3 text-xs font-medium text-[#85561A]">
-                  No availability set — the book will not appear anywhere for readers.
+                  {t('admin.bookForm.noAvail')}
                 </p>
               )}
             </div>
@@ -251,7 +255,7 @@ export default function AddEditBook() {
         <div className="lg:col-span-2">
           <div className="space-y-5 lg:sticky lg:top-8">
             <section className="rounded-card border border-divider bg-surface p-6">
-              <h2 className="section-title">Preview</h2>
+              <h2 className="section-title">{t('admin.bookForm.preview')}</h2>
               <div className="mt-5">
                 <p className="font-display text-base font-semibold leading-snug tracking-tight text-ink">{previewTitle}</p>
                 <p className="mt-0.5 text-xs text-ink-soft">{previewAuthor}</p>
@@ -259,15 +263,15 @@ export default function AddEditBook() {
                   <p className="tnum mt-3 text-lg font-semibold text-primary-dark">${price || '0.00'}</p>
                 )}
                 <span className="mt-2 inline-flex rounded-[3px] bg-inset px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em] text-ink-soft">
-                  {lang === 'so' ? 'Soomaali' : 'English'}
+                  {lang === 'so' ? t('admin.bookForm.somali') : t('admin.bookForm.english')}
                 </span>
               </div>
 
               <ul className="mt-6 space-y-2.5 border-t border-divider pt-5">
                 {[
-                  { ok: Boolean(selectedPdf || pdfPath), label: selectedPdf ? 'PDF selected' : pdfPath ? 'PDF stored' : 'PDF pending' },
-                  { ok: libraryEnabled || storeEnabled, label: libraryEnabled ? 'In Library' : storeEnabled ? 'Store only' : 'No availability' },
-                  { ok: Boolean(title.trim() && author.trim()), label: title.trim() && author.trim() ? 'Info complete' : 'Title & author required' },
+                  { ok: Boolean(selectedPdf || pdfPath), label: selectedPdf ? t('admin.bookForm.pdfSelected') : pdfPath ? t('admin.bookForm.pdfStored') : t('admin.bookForm.pdfPending') },
+                  { ok: libraryEnabled || storeEnabled, label: libraryEnabled ? t('admin.bookForm.inLibrary') : storeEnabled ? t('admin.bookForm.storeOnly') : t('admin.bookForm.noAvailShort') },
+                  { ok: Boolean(title.trim() && author.trim()), label: title.trim() && author.trim() ? t('admin.bookForm.infoComplete') : t('admin.bookForm.infoRequired') },
                 ].map((row) => (
                   <li key={row.label} className="flex items-center gap-2.5 text-xs">
                     {row.ok ? (
@@ -282,32 +286,36 @@ export default function AddEditBook() {
             </section>
 
             <section className="rounded-card border border-divider bg-surface p-6">
-              <h2 className="section-title">Publishing</h2>
+              <h2 className="section-title">{t('admin.bookForm.publishing')}</h2>
               <div className="mt-5 space-y-4">
                 <div>
-                  <label htmlFor="book-status" className="label">Status</label>
+                  <label htmlFor="book-status" className="label">{t('admin.bookForm.status')}</label>
                   <select id="book-status" className="input" value={status} onChange={(e) => setStatus(e.target.value as db.BookStatus)}>
-                    <option value="PUBLISHED">Published</option>
-                    <option value="DRAFT">Draft</option>
-                    <option value="ARCHIVED">Archived</option>
+                    <option value="PUBLISHED">{t('admin.bookForm.published')}</option>
+                    <option value="DRAFT">{t('admin.bookForm.draft')}</option>
+                    <option value="ARCHIVED">{t('admin.bookForm.archived')}</option>
                   </select>
                 </div>
                 <div className="space-y-2 border-t border-divider pt-4">
-                  <Button full onClick={() => void onSave(false)} disabled={uploading}>{uploading ? 'Uploading PDF...' : 'Save book'}</Button>
-                  <Button full variant="outline" onClick={() => void onSave(true)} disabled={uploading}>Save as draft</Button>
+                  <Button full onClick={() => void onSave(false)} disabled={uploading}>
+                    {uploading ? t('admin.bookForm.uploading') : t('admin.bookForm.save')}
+                  </Button>
+                  <Button full variant="outline" onClick={() => void onSave(true)} disabled={uploading}>
+                    {t('admin.bookForm.saveDraft')}
+                  </Button>
                   {editing && (
                     <Button
                       full
                       variant="danger"
                       onClick={() => {
-                        if (existing && window.confirm(`Delete "${existing.title}"? This cannot be undone.`)) {
+                        if (existing && window.confirm(t('admin.books.confirmDelete', { title: existing.title }))) {
                           db.deleteBook(existing.id, actor)
-                          toast('Book deleted', 'success')
+                          toast(t('admin.bookForm.deleted'), 'success')
                           navigate('/admin/books')
                         }
                       }}
                     >
-                      Delete book
+                      {t('admin.bookForm.deleteBook')}
                     </Button>
                   )}
                 </div>
