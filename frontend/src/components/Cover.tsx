@@ -186,6 +186,7 @@ export function CoverPreview({
     ratingCount: 0,
     popularity: 0,
     createdAt: '',
+    pdfPath: '',
   }
   return <Cover book={preview} className={className} />
 }
