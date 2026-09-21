@@ -67,6 +67,7 @@ export interface Book {
   rating: number
   ratingCount: number
   popularity: number      // for "popular" sorting
+  pdfPath: string         // filename served by the demo backend's /pdfs route
   createdAt: string
 }
 

@@ -19,7 +19,7 @@ export default function AddEditBook() {
   const [storeEnabled, setStoreEnabled] = useState(existing?.store ?? true)
   const [libraryEnabled, setLibraryEnabled] = useState(existing?.library ?? true)
   const [price, setPrice] = useState(existing?.price != null ? existing.price.toFixed(2) : '10.00')
-  const [pdfName, setPdfName] = useState<string | null>(null)
+  const [pdfName, setPdfName] = useState<string>(existing?.pdfPath ?? '')
   const [lang, setLang] = useState<'so' | 'en'>(existing?.language ?? 'en')
   const [year, setYear] = useState(existing ? String(existing.year) : String(new Date().getFullYear()))
   const [pages, setPages] = useState(existing ? String(existing.pages) : '200')
@@ -55,6 +55,7 @@ export default function AddEditBook() {
       store: storeEnabled,
       price: parsedPrice,
       status: asDraft ? ('DRAFT' as db.BookStatus) : status,
+      pdfPath: pdfName.trim(),
     }
     if (editing && existing) {
       updateBook(existing.id, input, actor)
@@ -133,6 +134,16 @@ export default function AddEditBook() {
           <section className="rounded-card border border-divider bg-surface p-6">
             <h2 className="section-title">Files</h2>
 
+            <div className="mt-5">
+              <Field
+                label="PDF Filename / Path"
+                value={pdfName}
+                onChange={(e) => setPdfName(e.target.value)}
+                placeholder="sample-book-1.pdf"
+                hint="Filename in backend/storage/pdfs, served publicly during the demo."
+              />
+            </div>
+
             <label className="mt-5 flex cursor-pointer flex-col items-center gap-2 rounded-card border-2 border-dashed border-primary/35 bg-primary-light/25 p-7 text-center transition-colors hover:border-primary">
               <Icon.Download className="h-6 w-6 rotate-180 text-primary" />
               <span className="text-sm font-semibold text-ink">Drop a PDF here or browse</span>
@@ -141,7 +152,7 @@ export default function AddEditBook() {
                 type="file"
                 accept="application/pdf"
                 className="hidden"
-                onChange={(e) => setPdfName(e.target.files?.[0]?.name ?? null)}
+                onChange={(e) => setPdfName(e.target.files?.[0]?.name ?? '')}
               />
             </label>
 

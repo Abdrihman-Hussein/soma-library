@@ -14,6 +14,11 @@ backend/dist/
 # ── Private PDF/covers storage (never commit) ──
 storage/
 backend/storage/
+!backend/storage/
+!backend/storage/pdfs/
+!backend/storage/pdfs/sample-book-1.pdf
+!backend/storage/pdfs/sample-book-2.pdf
+!backend/storage/pdfs/sample-book-3.pdf
 
 # ── Logs ──
 *.log

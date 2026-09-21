@@ -40,7 +40,7 @@ export interface DbState {
 // ── Persistence ────────────────────────────────────────────────────
 
 const KEY = 'somalibrary.db.v1'
-const VERSION = 1
+const VERSION = 2
 
 export function loadDb(): DbState {
   try {
@@ -155,7 +155,7 @@ const books: SeedBook[] = [
     id: 'b1', title: 'Atomic Habits', author: 'James Clear', categoryId: 'self-help',
     language: 'en', year: 2018, pages: 352, rating: 4.5, ratingCount: 1204, popularity: 100,
     description: 'Tiny changes, remarkable results. A proven framework for building good habits and breaking bad ones, every day.',
-    cover: { coverId: 12539702, isbn: '9780735211292', jacket: jacketPresets.ochre },
+    cover: { coverId: 12539702, isbn: '9780735211292', jacket: jacketPresets.ochre }, pdfPath: 'sample-book-1.pdf',
     library: true, store: true, price: 10, createdAt: dateOnly(daysAgo(18)),
     status: 'PUBLISHED', pdfSize: '1.2 MB', updatedAt: dateOnly(daysAgo(2)),
   },
@@ -163,7 +163,7 @@ const books: SeedBook[] = [
     id: 'b2', title: 'Taariikhda Soomaaliya', author: 'Prof. Cabdullaahi Cabdi', categoryId: 'history',
     language: 'so', year: 2024, pages: 280, rating: 4.8, ratingCount: 532, popularity: 92,
     description: 'Taariikh dahablan oo Soomaaliya laga soo qaatay wakhtiyadii hore ilaa maanta, si cad oo laysku fahmi karo.',
-    cover: { jacket: jacketPresets.deepTeal },
+    cover: { jacket: jacketPresets.deepTeal }, pdfPath: 'sample-book-2.pdf',
     library: true, store: true, price: 8, createdAt: dateOnly(daysAgo(9)),
     status: 'PUBLISHED', pdfSize: '1.6 MB', updatedAt: dateOnly(daysAgo(3)),
   },
@@ -171,7 +171,7 @@ const books: SeedBook[] = [
     id: 'b3', title: 'Clean Code', author: 'Robert C. Martin', categoryId: 'tech',
     language: 'en', year: 2008, pages: 464, rating: 4.7, ratingCount: 2280, popularity: 88,
     description: 'A handbook of agile software craftsmanship. Writing code that is easy to read, maintain and extend.',
-    cover: { coverId: 8065615, isbn: '9780132350884', jacket: jacketPresets.slate },
+    cover: { coverId: 8065615, isbn: '9780132350884', jacket: jacketPresets.slate }, pdfPath: 'sample-book-3.pdf',
     library: true, store: true, price: 15, createdAt: dateOnly(daysAgo(30)),
     status: 'PUBLISHED', pdfSize: '2.0 MB', updatedAt: dateOnly(daysAgo(4)),
   },
@@ -179,7 +179,7 @@ const books: SeedBook[] = [
     id: 'b4', title: 'Axdiga Nolosha', author: 'Halimo Khaliif', categoryId: 'self-help',
     language: 'so', year: 2025, pages: 198, rating: 4.4, ratingCount: 311, popularity: 81,
     description: 'Tallooyin practical ah oo ku caawiya inaad noloshaada horumarisay talaabo kasta oo aad qaaddo.',
-    cover: { jacket: jacketPresets.olive },
+    cover: { jacket: jacketPresets.olive }, pdfPath: 'sample-book-1.pdf',
     library: true, store: false, price: null, createdAt: dateOnly(daysAgo(14)),
     status: 'PUBLISHED', pdfSize: '2.4 MB', updatedAt: dateOnly(daysAgo(5)),
   },
@@ -187,7 +187,7 @@ const books: SeedBook[] = [
     id: 'b5', title: 'Python Basics', author: 'David Amos', categoryId: 'tech',
     language: 'en', year: 2021, pages: 210, rating: 4.3, ratingCount: 890, popularity: 76,
     description: 'A friendly introduction to Python programming with hands-on exercises for absolute beginners.',
-    cover: { coverId: 10859060, isbn: '9781775093329', jacket: jacketPresets.indigo },
+    cover: { coverId: 10859060, isbn: '9781775093329', jacket: jacketPresets.indigo }, pdfPath: 'sample-book-2.pdf',
     library: true, store: true, price: 8, createdAt: dateOnly(daysAgo(22)),
     status: 'PUBLISHED', pdfSize: '2.8 MB', updatedAt: dateOnly(daysAgo(6)),
   },
@@ -195,7 +195,7 @@ const books: SeedBook[] = [
     id: 'b6', title: '55 Dhibaabo Jacayl ah', author: 'Dr. Musdafa Maxmuud', categoryId: 'poetry',
     language: 'so', year: 2024, pages: 226, rating: 4.9, ratingCount: 445, popularity: 90,
     description: 'Buug Somali ah oo si xasaasi ah uga hadlaya jacaylka, naxariista iyo caqabadaha nolosha.',
-    cover: { jacket: jacketPresets.plum },
+    cover: { jacket: jacketPresets.plum }, pdfPath: 'sample-book-3.pdf',
     library: true, store: true, price: 6, createdAt: dateOnly(daysAgo(7)),
     status: 'PUBLISHED', pdfSize: '3.2 MB', updatedAt: dateOnly(daysAgo(7)),
   },
@@ -203,7 +203,7 @@ const books: SeedBook[] = [
     id: 'b7', title: 'The Prophet', author: 'Kahlil Gibran', categoryId: 'arabic',
     language: 'en', year: 1923, pages: 128, rating: 4.6, ratingCount: 980, popularity: 74,
     description: 'Poetic essays on love, work, joy and sorrow from one of the best-loved philosophers of the 20th century.',
-    cover: { coverId: 418324, jacket: jacketPresets.sand },
+    cover: { coverId: 418324, jacket: jacketPresets.sand }, pdfPath: 'sample-book-1.pdf',
     library: true, store: true, price: 6, createdAt: dateOnly(daysAgo(51)),
     status: 'PUBLISHED', pdfSize: '3.6 MB', updatedAt: dateOnly(daysAgo(8)),
   },
@@ -211,7 +211,7 @@ const books: SeedBook[] = [
     id: 'b8', title: 'Cilmiga Xiligga', author: 'Dr. Faadumo Xasan', categoryId: 'science',
     language: 'so', year: 2026, pages: 240, rating: 4.2, ratingCount: 96, popularity: 60,
     description: 'Aasaaska cilmiga xiligga oo loo sharaxay ardayda da’da yar, tusaaloyin fudud oo muuqda.',
-    cover: { jacket: jacketPresets.rust },
+    cover: { jacket: jacketPresets.rust }, pdfPath: 'sample-book-2.pdf',
     library: true, store: false, price: null, createdAt: dateOnly(daysAgo(5)),
     status: 'DRAFT', pdfSize: '4.0 MB', updatedAt: dateOnly(daysAgo(1)),
   },
@@ -219,7 +219,7 @@ const books: SeedBook[] = [
     id: 'b9', title: 'Deep Work', author: 'Cal Newport', categoryId: 'self-help',
     language: 'en', year: 2016, pages: 304, rating: 4.5, ratingCount: 1540, popularity: 85,
     description: 'Rules for focused success in a distracted world — how to produce at an elite level, day after day.',
-    cover: { coverId: 7988607, isbn: '9781455586691', jacket: jacketPresets.charcoal },
+    cover: { coverId: 7988607, isbn: '9781455586691', jacket: jacketPresets.charcoal }, pdfPath: 'sample-book-3.pdf',
     library: true, store: true, price: 12, createdAt: dateOnly(daysAgo(35)),
     status: 'PUBLISHED', pdfSize: '4.8 MB', updatedAt: dateOnly(daysAgo(9)),
   },
@@ -227,7 +227,7 @@ const books: SeedBook[] = [
     id: 'b10', title: 'Halganka Aqoonla\u2019aanta', author: 'Cabdiraxmaan Yuusuf', categoryId: 'history',
     language: 'so', year: 2022, pages: 320, rating: 4.1, ratingCount: 210, popularity: 55,
     description: 'Sheeko taariikhi ah oo ku saabsan halganka akhristayaasha Soomaaliyeed ee soo jeestay dhaqanka akhriska.',
-    cover: { jacket: jacketPresets.clay },
+    cover: { jacket: jacketPresets.clay }, pdfPath: 'sample-book-1.pdf',
     library: false, store: true, price: 9, createdAt: dateOnly(daysAgo(93)),
     status: 'ARCHIVED', pdfSize: '4.4 MB', updatedAt: dateOnly(daysAgo(2)),
   },
@@ -764,7 +764,7 @@ export interface BookInput {
   store: boolean
   price: number | null
   status: BookStatus
-  pdfName?: string | null
+  pdfPath: string
 }
 
 function estimateSize(pages: number): string {
