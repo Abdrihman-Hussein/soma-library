@@ -42,6 +42,9 @@ export interface DbState {
 const KEY = 'somalibrary.db.v1'
 const VERSION = 2
 
+/** The localStorage key backing the db — listen for it in `storage` events for cross-tab sync. */
+export const DB_STORAGE_KEY = KEY
+
 export function loadDb(): DbState {
   try {
     const raw = localStorage.getItem(KEY)
@@ -399,6 +402,17 @@ let db: DbState = loadDb()
 
 function flush(): void {
   saveDb(db)
+}
+
+/**
+ * Re-read state from localStorage, discarding in-memory changes.
+ * Call this when another tab writes to storage (see `storage` listener in
+ * AppContext) so tabs stay in sync. Last writer still wins per key write —
+ * acceptable for the localStorage prototype; the API layer resolves this
+ * permanently (see #2).
+ */
+export function reloadDb(): void {
+  db = loadDb()
 }
 
 // ── Books ──
