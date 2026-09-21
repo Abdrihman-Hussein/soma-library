@@ -94,11 +94,6 @@
     "pages": "Bogag",
     "language": "Luqad"
   },
-  "reader": {
-    "accessTitle": "Gelitaan la xaday",
-    "accessBody": "Waxaad u baahan tahay rukun firfiran ama iibsasho si aad u akhrido buuggan.",
-    "choosePlan": "Dooro qorshe"
-  },
   "cart": {
     "title": "Gaadhiga",
     "digitalNote": "Waa badeecad dijitaal ah. Gelitaan PDF ah oo keligiis ah — wax gaadhi ah ma jiro.",
@@ -134,7 +129,10 @@
   },
   "reader": {
     "page": "Bogga",
-    "of": "ka mid ah"
+    "of": "ka mid ah",
+    "accessTitle": "Gelitaan la xaday",
+    "accessBody": "Waxaad u baahan tahay rukun firfiran ama iibsasho si aad u akhrido buuggan.",
+    "choosePlan": "Dooro qorshe"
   },
   "plans": {
     "title": "Rukun",

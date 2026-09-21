@@ -94,11 +94,6 @@
     "pages": "Pages",
     "language": "Language"
   },
-  "reader": {
-    "accessTitle": "Access restricted",
-    "accessBody": "You need an active subscription or a purchase to read this book.",
-    "choosePlan": "Choose a plan"
-  },
   "cart": {
     "title": "Cart",
     "digitalNote": "This is a digital item. Personal PDF access — no delivery.",
@@ -134,7 +129,10 @@
   },
   "reader": {
     "page": "Page",
-    "of": "of"
+    "of": "of",
+    "accessTitle": "Access restricted",
+    "accessBody": "You need an active subscription or a purchase to read this book.",
+    "choosePlan": "Choose a plan"
   },
   "plans": {
     "title": "Subscription",
