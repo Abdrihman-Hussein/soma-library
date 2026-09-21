@@ -4,8 +4,10 @@ import * as db from '../../data/db'
 import { allCategories, createBook, getBook, jacketForBook, updateBook } from '../../data/db'
 import { useApp } from '../../context/AppContext'
 import { Button, Field, Icon, Toggle } from '../../components/ui'
+import { apiUrl, authHeaders } from '../../lib/api'
 
-const apiBaseUrl = (import.meta.env.VITE_API_URL ?? 'http://localhost:4000').replace(/\/$/, '')
+// Uploads/reader URLs go through src/lib/api.ts so the base URL and reader
+// token live in one place.
 
 export default function AddEditBook() {
   const { id } = useParams()
@@ -56,7 +58,11 @@ export default function AddEditBook() {
       try {
         const formData = new FormData()
         formData.append('pdf', selectedPdf)
-        const response = await fetch(`${apiBaseUrl}/api/books/upload-pdf`, { method: 'POST', body: formData })
+        const response = await fetch(apiUrl('/api/books/upload-pdf'), {
+          method: 'POST',
+          headers: authHeaders(),
+          body: formData,
+        })
         const payload = await response.json() as { pdfPath?: string; error?: string }
         if (!response.ok || !payload.pdfPath) throw new Error(payload.error ?? 'PDF upload failed.')
         savedPdfPath = payload.pdfPath
@@ -193,7 +199,7 @@ export default function AddEditBook() {
             )}
             {!selectedPdf && existing && pdfPath && (
               <p className="mt-3 text-[11px] text-ink-faint">
-                Stored file: {existing.pdfSize} · {existing.id}.pdf
+                Stored file: {existing.pdfPath}
               </p>
             )}
           </section>

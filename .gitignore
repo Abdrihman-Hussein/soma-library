@@ -12,13 +12,11 @@ backend/dist/
 .env.*.local
 
 # ── Private PDF/covers storage (never commit) ──
+# Runtime uploads are written here and must stay out of git. The demo PDFs are
+# tracked in backend/fixtures/pdfs instead and copied in on the first dev boot
+# (see backend/src/lib/storage.ts).
 storage/
 backend/storage/
-!backend/storage/
-!backend/storage/pdfs/
-!backend/storage/pdfs/sample-book-1.pdf
-!backend/storage/pdfs/sample-book-2.pdf
-!backend/storage/pdfs/sample-book-3.pdf
 
 # ── Logs ──
 *.log
