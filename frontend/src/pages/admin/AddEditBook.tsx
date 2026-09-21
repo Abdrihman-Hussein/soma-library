@@ -5,6 +5,8 @@ import { allCategories, createBook, getBook, jacketForBook, updateBook } from '.
 import { useApp } from '../../context/AppContext'
 import { Button, Field, Icon, Toggle } from '../../components/ui'
 
+const apiBaseUrl = (import.meta.env.VITE_API_URL ?? 'http://localhost:4000').replace(/\/$/, '')
+
 export default function AddEditBook() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -19,7 +21,9 @@ export default function AddEditBook() {
   const [storeEnabled, setStoreEnabled] = useState(existing?.store ?? true)
   const [libraryEnabled, setLibraryEnabled] = useState(existing?.library ?? true)
   const [price, setPrice] = useState(existing?.price != null ? existing.price.toFixed(2) : '10.00')
-  const [pdfName, setPdfName] = useState<string>(existing?.pdfPath ?? '')
+  const [pdfPath, setPdfPath] = useState(existing?.pdfPath ?? '')
+  const [selectedPdf, setSelectedPdf] = useState<File | null>(null)
+  const [uploading, setUploading] = useState(false)
   const [lang, setLang] = useState<'so' | 'en'>(existing?.language ?? 'en')
   const [year, setYear] = useState(existing ? String(existing.year) : String(new Date().getFullYear()))
   const [pages, setPages] = useState(existing ? String(existing.pages) : '200')
@@ -36,11 +40,35 @@ export default function AddEditBook() {
   const previewAuthor = author || 'Unknown author'
   const preset = jacketForBook(existing?.id ?? previewTitle)
 
-  const onSave = (asDraft: boolean) => {
+  const onSave = async (asDraft: boolean) => {
     if (!title.trim() || !author.trim()) {
       toast('Title and author are required', 'error')
       return
     }
+    if (!selectedPdf && !pdfPath) {
+      toast('Please select a PDF before saving this book.', 'error')
+      return
+    }
+
+    let savedPdfPath = pdfPath
+    if (selectedPdf) {
+      setUploading(true)
+      try {
+        const formData = new FormData()
+        formData.append('pdf', selectedPdf)
+        const response = await fetch(`${apiBaseUrl}/api/books/upload-pdf`, { method: 'POST', body: formData })
+        const payload = await response.json() as { pdfPath?: string; error?: string }
+        if (!response.ok || !payload.pdfPath) throw new Error(payload.error ?? 'PDF upload failed.')
+        savedPdfPath = payload.pdfPath
+        setPdfPath(savedPdfPath)
+      } catch (error) {
+        toast(error instanceof Error ? error.message : 'PDF upload failed.', 'error')
+        return
+      } finally {
+        setUploading(false)
+      }
+    }
+
     const parsedPrice = storeEnabled ? Math.max(0, parseFloat(price) || 0) : null
     const input = {
       title: title.trim(),
@@ -55,7 +83,7 @@ export default function AddEditBook() {
       store: storeEnabled,
       price: parsedPrice,
       status: asDraft ? ('DRAFT' as db.BookStatus) : status,
-      pdfPath: pdfName.trim(),
+      pdfPath: savedPdfPath,
     }
     if (editing && existing) {
       updateBook(existing.id, input, actor)
@@ -84,7 +112,7 @@ export default function AddEditBook() {
         </div>
         <div className="flex gap-2">
           <Link to="/admin/books" className="btn-outline !min-h-10 text-[13px]">Cancel</Link>
-          <Button className="!min-h-10 text-[13px]" onClick={() => onSave(false)}>Save book</Button>
+          <Button className="!min-h-10 text-[13px]" onClick={() => void onSave(false)} disabled={uploading}>{uploading ? 'Uploading PDF...' : 'Save book'}</Button>
         </div>
       </div>
 
@@ -134,16 +162,6 @@ export default function AddEditBook() {
           <section className="rounded-card border border-divider bg-surface p-6">
             <h2 className="section-title">Files</h2>
 
-            <div className="mt-5">
-              <Field
-                label="PDF Filename / Path"
-                value={pdfName}
-                onChange={(e) => setPdfName(e.target.value)}
-                placeholder="sample-book-1.pdf"
-                hint="Filename in backend/storage/pdfs, served publicly during the demo."
-              />
-            </div>
-
             <label className="mt-5 flex cursor-pointer flex-col items-center gap-2 rounded-card border-2 border-dashed border-primary/35 bg-primary-light/25 p-7 text-center transition-colors hover:border-primary">
               <Icon.Download className="h-6 w-6 rotate-180 text-primary" />
               <span className="text-sm font-semibold text-ink">Drop a PDF here or browse</span>
@@ -152,18 +170,28 @@ export default function AddEditBook() {
                 type="file"
                 accept="application/pdf"
                 className="hidden"
-                onChange={(e) => setPdfName(e.target.files?.[0]?.name ?? '')}
+                onChange={(e) => {
+                  const file = e.target.files?.[0] ?? null
+                  if (!file) return
+                  if (file.type !== 'application/pdf' || !file.name.toLowerCase().endsWith('.pdf')) {
+                    setSelectedPdf(null)
+                    e.target.value = ''
+                    toast('Only PDF files are allowed.', 'error')
+                    return
+                  }
+                  setSelectedPdf(file)
+                }}
               />
             </label>
 
-            {pdfName && (
+            {selectedPdf && (
               <div className="mt-3 flex items-center gap-3 rounded-btn bg-inset/60 px-4 py-3">
                 <Icon.FileText className="h-4 w-4 text-primary" />
-                <span className="flex-1 truncate text-xs font-medium text-ink">{pdfName}</span>
+                <span className="flex-1 truncate text-xs font-medium text-ink">{selectedPdf.name}</span>
                 <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-status-success">Selected</span>
               </div>
             )}
-            {!pdfName && existing && (
+            {!selectedPdf && existing && pdfPath && (
               <p className="mt-3 text-[11px] text-ink-faint">
                 Stored file: {existing.pdfSize} · {existing.id}.pdf
               </p>
@@ -231,7 +259,7 @@ export default function AddEditBook() {
 
               <ul className="mt-6 space-y-2.5 border-t border-divider pt-5">
                 {[
-                  { ok: Boolean(pdfName) || editing, label: pdfName ? 'PDF selected' : editing ? 'PDF stored' : 'PDF pending' },
+                  { ok: Boolean(selectedPdf || pdfPath), label: selectedPdf ? 'PDF selected' : pdfPath ? 'PDF stored' : 'PDF pending' },
                   { ok: libraryEnabled || storeEnabled, label: libraryEnabled ? 'In Library' : storeEnabled ? 'Store only' : 'No availability' },
                   { ok: Boolean(title.trim() && author.trim()), label: title.trim() && author.trim() ? 'Info complete' : 'Title & author required' },
                 ].map((row) => (
@@ -259,8 +287,8 @@ export default function AddEditBook() {
                   </select>
                 </div>
                 <div className="space-y-2 border-t border-divider pt-4">
-                  <Button full onClick={() => onSave(false)}>Save book</Button>
-                  <Button full variant="outline" onClick={() => onSave(true)}>Save as draft</Button>
+                  <Button full onClick={() => void onSave(false)} disabled={uploading}>{uploading ? 'Uploading PDF...' : 'Save book'}</Button>
+                  <Button full variant="outline" onClick={() => void onSave(true)} disabled={uploading}>Save as draft</Button>
                   {editing && (
                     <Button
                       full
