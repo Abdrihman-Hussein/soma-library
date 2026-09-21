@@ -52,7 +52,7 @@ export default function Search() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 md:px-8 md:py-14">
       {/* Every other page orients you with a breadcrumb; search should too. */}
-      <nav aria-label="Breadcrumb" className="mb-6 flex items-center gap-2 text-[11px] text-ink-faint">
+      <nav aria-label={t('common.breadcrumb')} className="mb-6 flex items-center gap-2 text-[11px] text-ink-faint">
         <Link to="/" className="uppercase tracking-[0.12em] transition-colors hover:text-primary">
           {t('nav.home')}
         </Link>

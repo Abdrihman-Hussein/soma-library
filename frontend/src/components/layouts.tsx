@@ -570,17 +570,18 @@ export function AppLayout() {
 // ── Admin layout ───────────────────────────────────────────────────
 
 const adminNav = [
-  { to: '/admin', label: 'Dashboard', icon: Icon.Grid, end: true },
-  { to: '/admin/books', label: 'Books', icon: Icon.Book, end: false },
-  { to: '/admin/users', label: 'Users', icon: Icon.Users, end: false },
-  { to: '/admin/subscriptions', label: 'Subscriptions', icon: Icon.BarChart, end: false },
-  { to: '/admin/payments', label: 'Payments', icon: Icon.Card, end: false },
-  { to: '/admin/reports', label: 'Reports', icon: Icon.TrendUp, end: false },
-  { to: '/admin/audit', label: 'Audit logs', icon: Icon.List, end: false },
-  { to: '/admin/settings', label: 'Settings', icon: Icon.Settings, end: false },
+  { to: '/admin', labelKey: 'admin.layout.dashboard', icon: Icon.Grid, end: true },
+  { to: '/admin/books', labelKey: 'admin.layout.books', icon: Icon.Book, end: false },
+  { to: '/admin/users', labelKey: 'admin.layout.users', icon: Icon.Users, end: false },
+  { to: '/admin/subscriptions', labelKey: 'admin.layout.subs', icon: Icon.BarChart, end: false },
+  { to: '/admin/payments', labelKey: 'admin.layout.payments', icon: Icon.Card, end: false },
+  { to: '/admin/reports', labelKey: 'admin.layout.reports', icon: Icon.TrendUp, end: false },
+  { to: '/admin/audit', labelKey: 'admin.layout.audit', icon: Icon.List, end: false },
+  { to: '/admin/settings', labelKey: 'admin.layout.settings', icon: Icon.Settings, end: false },
 ]
 
 export function AdminLayout() {
+  const { t } = useT()
   const { toasts, user, logout } = useApp()
 
   return (
@@ -593,11 +594,11 @@ export function AdminLayout() {
               Soma<span className="text-primary">Library</span>
             </span>
           </Link>
-          <p className="eyebrow-plain mt-2.5">Admin console</p>
+          <p className="eyebrow-plain mt-2.5">{t('admin.layout.console')}</p>
         </div>
 
         <nav className="flex-1 space-y-0.5 overflow-y-auto p-3">
-          {adminNav.map(({ to, label, icon: I, end }) => (
+          {adminNav.map(({ to, labelKey, icon: I, end }) => (
             <NavLink
               key={to}
               to={to}
@@ -611,7 +612,7 @@ export function AdminLayout() {
               }
             >
               <I className="h-4 w-4" />
-              {label}
+              {t(labelKey)}
             </NavLink>
           ))}
         </nav>
@@ -622,13 +623,13 @@ export function AdminLayout() {
               {user?.avatarInitials ?? 'AD'}
             </span>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-semibold text-ink">{user?.name ?? 'Admin'}</p>
-              <p className="text-[10px] uppercase tracking-[0.12em] text-ink-faint">Super admin</p>
+              <p className="truncate text-xs font-semibold text-ink">{user?.name ?? t('admin.layout.adminFallback')}</p>
+              <p className="text-[10px] uppercase tracking-[0.12em] text-ink-faint">{t('admin.layout.superAdmin')}</p>
             </div>
             <button
               type="button"
               onClick={logout}
-              title="Log out"
+              title={t('admin.layout.logout')}
               className="rounded-btn p-1.5 text-ink-faint transition-colors hover:text-status-danger"
             >
               <Icon.Logout className="h-4 w-4" />
@@ -639,7 +640,7 @@ export function AdminLayout() {
             className="mt-3 flex items-center justify-center gap-1.5 rounded-btn border border-divider bg-surface px-3 py-2 text-xs font-semibold text-ink-soft transition-colors hover:text-ink"
           >
             <Icon.ArrowLeft className="h-3.5 w-3.5" />
-            Back to site
+            {t('admin.layout.backToSite')}
           </Link>
         </div>
       </aside>
@@ -649,16 +650,16 @@ export function AdminLayout() {
         <div className="flex items-center justify-between px-4 py-3">
           <Link to="/admin" className="flex items-center gap-2">
             <Mark className="h-7 w-7" />
-            <span className="font-display text-sm font-semibold tracking-tight">
-              Admin<span className="text-ink-faint"> · SomaLibrary</span>
-            </span>
-          </Link>
-          <Link to="/" className="text-xs font-semibold text-primary">
-            Site →
-          </Link>
+              <span className="font-display text-sm font-semibold tracking-tight">
+                {t('admin.layout.adminFallback')}<span className="text-ink-faint"> · SomaLibrary</span>
+              </span>
+            </Link>
+            <Link to="/" className="text-xs font-semibold text-primary">
+              {t('admin.layout.site')} →
+            </Link>
         </div>
         <div className="flex gap-1.5 overflow-x-auto px-4 pb-2.5">
-          {adminNav.map(({ to, label, end }) => (
+          {adminNav.map(({ to, labelKey, end }) => (
             <NavLink
               key={to}
               to={to}
@@ -669,7 +670,7 @@ export function AdminLayout() {
                 }`
               }
             >
-              {label}
+              {t(labelKey)}
             </NavLink>
           ))}
         </div>

@@ -11,10 +11,9 @@ type ViewStatus = ReaderFileStatus | 'checking'
 export default function Reader() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { t, lang } = useT()
+  const { t } = useT()
   const { user, canRead, isSubscribed, progressFor, saveProgress } = useApp()
   const book = getBook(id ?? '')
-  const so = lang === 'so'
 
   const pages = book ? Math.max(1, book.pages) : 1
   const saved = book ? progressFor(book.id) : undefined
@@ -60,7 +59,7 @@ export default function Reader() {
   if (!book) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-canvas text-ink-soft">
-        {so ? 'Buug lama helin' : 'Book not found'}
+        {t('common.notFound')}
       </div>
     )
   }
@@ -73,18 +72,14 @@ export default function Reader() {
         <span className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-status-warning bg-[#F6EAD3] text-[#85561A]">
           <Icon.Lock className="h-6 w-6" />
         </span>
-        <h1 className="display-title mt-2">{so ? 'Gelitaan la xaday' : 'Access restricted'}</h1>
-        <p className="lede max-w-sm">
-          {so
-            ? 'Waxaad u baahan tahay rukun firfiran ama iibsasho si aad u akhrido buuggan.'
-            : 'You need an active subscription or a purchase to read this book.'}
-        </p>
+        <h1 className="display-title mt-2">{t('reader.accessTitle')}</h1>
+        <p className="lede max-w-sm">{t('reader.accessBody')}</p>
         <div className="mt-4 flex gap-2">
           <button type="button" onClick={() => navigate(-1)} className="btn-outline">
             {t('common.back')}
           </button>
           <button type="button" onClick={() => navigate('/plans')} className="btn-primary">
-            {so ? 'Dooro qorshe' : 'Choose a plan'}
+            {t('reader.choosePlan')}
           </button>
         </div>
         {!isSubscribed && (
@@ -97,17 +92,11 @@ export default function Reader() {
   }
 
   const statusText: Record<ViewStatus, string> = {
-    checking: so ? 'PDF-ka waa la soo dejinayaa…' : 'Loading the PDF…',
+    checking: t('reader.loading'),
     ready: '',
-    locked: so
-      ? 'PDF-kan wuxuu u baahan yahay gelitaan. Gal akoon leh rukun ama iibsi.'
-      : 'This PDF needs access. Sign in with an account that has a subscription or a purchase.',
-    missing: so
-      ? 'Buuggan weli PDF looma dejin.'
-      : 'No PDF has been attached to this book yet.',
-    offline: so
-      ? 'API-ga lama xiriiri karo, markaa PDF-ka lama soo dejin karo. Bilow backend-ka:'
-      : 'Cannot reach the API, so the PDF cannot load. Start the backend:',
+    locked: t('reader.locked'),
+    missing: t('reader.missing'),
+    offline: t('reader.offline'),
   }
 
   return (
@@ -139,7 +128,7 @@ export default function Reader() {
               rel="noreferrer"
               className="hidden shrink-0 text-xs font-semibold text-primary-dark hover:text-primary sm:block"
             >
-              {so ? 'Fur tab cusub' : 'Open in new tab'} ↗
+              {t('reader.openNewTab')} ↗
             </a>
           )}
         </div>
@@ -170,7 +159,7 @@ export default function Reader() {
             )}
             {status === 'locked' && (
               <button type="button" onClick={() => navigate('/login')} className="btn-primary mt-2">
-                {so ? 'Gal' : 'Sign in'}
+                {t('common.login')}
               </button>
             )}
             {status === 'missing' && (
@@ -195,7 +184,7 @@ export default function Reader() {
             className="btn-outline !min-h-9 !px-3 text-xs disabled:opacity-40"
           >
             <Icon.ArrowLeft className="h-3.5 w-3.5" />
-            {so ? 'Hore' : 'Previous'}
+            {t('reader.previous')}
           </button>
 
           <span className="tnum shrink-0 text-[11px] font-semibold text-ink-soft">
@@ -220,7 +209,7 @@ export default function Reader() {
             onClick={() => setPage((p) => Math.min(pages, p + 1))}
             className="btn-outline !min-h-9 !px-3 text-xs disabled:opacity-40"
           >
-            {so ? 'Xiga' : 'Next'}
+            {t('reader.next')}
             <Icon.ChevronRight className="h-3.5 w-3.5" />
           </button>
 
