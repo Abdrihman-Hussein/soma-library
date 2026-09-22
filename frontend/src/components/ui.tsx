@@ -1,7 +1,7 @@
 // ── Shared UI primitives for SomaLibrary ────────────────────────────
 
 import type { ReactNode, ButtonHTMLAttributes, InputHTMLAttributes } from 'react'
-import { useId } from 'react'
+import { useId, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useT } from '../i18n'
 
@@ -426,6 +426,26 @@ export function ConfirmModal({
   onCancel: () => void
   danger?: boolean
 }) {
+  const dialogRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation()
+        onCancel()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown, true)
+    return () => document.removeEventListener('keydown', handleKeyDown, true)
+  }, [open, onCancel])
+
+  useEffect(() => {
+    if (open) dialogRef.current?.focus()
+  }, [open])
+
   if (!open) return null
 
   return (
@@ -435,11 +455,13 @@ export function ConfirmModal({
       onMouseDown={onCancel}
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="confirm-modal-title"
         aria-describedby="confirm-modal-message"
-        className="w-full max-w-md rounded-card border border-divider bg-canvas p-6 shadow-lift"
+        tabIndex={-1}
+        className="w-full max-w-md rounded-card border border-divider bg-canvas p-6 shadow-lift outline-none"
         onMouseDown={(e) => e.stopPropagation()}
       >
         <div className="flex items-start gap-3">

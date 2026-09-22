@@ -35,6 +35,8 @@ export default function ManageUsers() {
     ? db.allPayments().filter((p) => p.userId === selected.id).slice(0, 4)
     : []
 
+  const suspendTarget = confirmSuspend ? db.getUser(confirmSuspend) : null
+
   const setStatus = (userId: string, status: 'active' | 'suspended') => {
     const target = db.getUser(userId)
     if (!target) return
@@ -253,31 +255,21 @@ export default function ManageUsers() {
       open={confirmSuspend !== null}
       title="Suspend user?"
       message={
-        (() => {
-          const target = confirmSuspend
-            ? db.getUser(confirmSuspend)
-            : undefined
-
-          return target
-            ? `Suspend ${target.name}? They lose library access immediately.`
-            : 'Suspend this user? They will lose library access immediately.'
-        })()
+        suspendTarget
+          ? `Suspend ${suspendTarget.name}? They lose library access immediately.`
+          : 'Suspend this user? They will lose library access immediately.'
       }
       confirmLabel="Suspend"
       cancelLabel="Cancel"
       danger
       onConfirm={() => {
-        if (!confirmSuspend) return
-
-        const target = db.getUser(confirmSuspend)
-
-        if (!target) {
+        if (!confirmSuspend || !suspendTarget) {
           setConfirmSuspend(null)
           return
         }
 
         db.setUserStatus(confirmSuspend, 'suspended', actor)
-        toast(`${target.name} suspended`, 'success')
+        toast(`${suspendTarget.name} suspended`, 'success')
         setConfirmSuspend(null)
         refresh()
       }}
