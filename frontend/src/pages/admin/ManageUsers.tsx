@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useApp } from '../../context/AppContext'
 import * as db from '../../data/db'
-import { Icon, StatusPill } from '../../components/ui'
+import { ConfirmModal, Icon, StatusPill } from '../../components/ui'
 import { useT } from '../../i18n'
 
 export default function ManageUsers() {
@@ -12,6 +12,7 @@ export default function ManageUsers() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'suspended'>('all')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [tick, setTick] = useState(0)
+  const [confirmSuspend, setConfirmSuspend] = useState<string | null>(null)
 
   const actor = me?.name ?? 'Admin'
   const refresh = () => setTick((t) => t + 1)
@@ -34,6 +35,8 @@ export default function ManageUsers() {
     ? db.allPayments().filter((p) => p.userId === selected.id).slice(0, 4)
     : []
 
+  const suspendTarget = confirmSuspend ? db.getUser(confirmSuspend) : null
+
   const setStatus = (userId: string, status: 'active' | 'suspended') => {
     const target = db.getUser(userId)
     if (!target) return
@@ -41,7 +44,11 @@ export default function ManageUsers() {
       toast(t('admin.users.suspendOwn'), 'error')
       return
     }
-    if (status === 'suspended' && !window.confirm(t('admin.users.confirmSuspend', { name: target.name }))) return
+    if (status === 'suspended') {
+      setConfirmSuspend(userId)
+      return
+    }
+
     db.setUserStatus(userId, status, actor)
     toast(t(status === 'active' ? 'admin.users.reinstated' : 'admin.users.suspendedToast', { name: target.name }), 'success')
     refresh()
@@ -56,6 +63,7 @@ export default function ManageUsers() {
   }
 
   return (
+    <>
     <div className="space-y-4">
       <h1 className="text-xl font-bold text-ink">{t('admin.users.title', { count: users.length })}</h1>
 
@@ -241,5 +249,31 @@ export default function ManageUsers() {
         </div>
       </div>
     </div>
+
+    <ConfirmModal
+      open={confirmSuspend !== null}
+      title={t('admin.users.suspendTitle')}
+      message={
+        suspendTarget
+          ? t('admin.users.confirmSuspend', { name: suspendTarget.name })
+          : t('admin.users.confirmSuspendGeneric')
+      }
+      confirmLabel={t('admin.users.suspend')}
+      cancelLabel={t('admin.users.cancel')}
+      danger
+      onConfirm={() => {
+        if (!confirmSuspend || !suspendTarget) {
+          setConfirmSuspend(null)
+          return
+        }
+
+        db.setUserStatus(confirmSuspend, 'suspended', actor)
+        toast(t('admin.users.suspendedToast', { name: suspendTarget.name }), 'success')
+        setConfirmSuspend(null)
+        refresh()
+      }}
+      onCancel={() => setConfirmSuspend(null)}
+    />
+    </>
   )
 }

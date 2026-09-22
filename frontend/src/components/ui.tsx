@@ -1,7 +1,7 @@
 // ── Shared UI primitives for SomaLibrary ────────────────────────────
 
 import type { ReactNode, ButtonHTMLAttributes, InputHTMLAttributes } from 'react'
-import { useId } from 'react'
+import { useId, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useT } from '../i18n'
 
@@ -401,5 +401,104 @@ export function Breadcrumbs({ items }: { items: { to?: string; label: string }[]
         </span>
       ))}
     </nav>
+  )
+}
+
+// ── Confirm modal ──────────────────────────────────────────────────
+
+export function ConfirmModal({
+  open,
+  title,
+  message,
+  confirmLabel = 'Confirm',
+  cancelLabel = 'Cancel',
+  onConfirm,
+  onCancel,
+  danger = false,
+}: {
+  open: boolean
+  title: string
+  message: string
+  confirmLabel?: string
+  cancelLabel?: string
+  onConfirm: () => void
+  onCancel: () => void
+  danger?: boolean
+}) {
+  const dialogRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation()
+        onCancel()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown, true)
+    return () => document.removeEventListener('keydown', handleKeyDown, true)
+  }, [open, onCancel])
+
+  useEffect(() => {
+    if (open) dialogRef.current?.focus()
+  }, [open])
+
+  if (!open) return null
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/40 px-4 backdrop-blur-sm"
+      role="presentation"
+      onMouseDown={onCancel}
+    >
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="confirm-modal-title"
+        aria-describedby="confirm-modal-message"
+        tabIndex={-1}
+        className="w-full max-w-md rounded-card border border-divider bg-canvas p-6 shadow-lift outline-none"
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-inset text-ink">
+            <Icon.Alert className="h-5 w-5" />
+          </div>
+
+          <div className="min-w-0">
+            <h2
+              id="confirm-modal-title"
+              className="font-display text-lg font-semibold tracking-tight text-ink"
+            >
+              {title}
+            </h2>
+
+            <p
+              id="confirm-modal-message"
+              className="mt-1.5 text-sm leading-relaxed text-ink-soft"
+            >
+              {message}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-6 flex justify-end gap-2">
+          <Button type="button" variant="outline" onClick={onCancel}>
+            {cancelLabel}
+          </Button>
+
+          <Button
+            type="button"
+            variant={danger ? 'danger' : 'primary'}
+            onClick={onConfirm}
+          >
+            {confirmLabel}
+          </Button>
+        </div>
+      </div>
+    </div>
   )
 }

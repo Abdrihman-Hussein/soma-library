@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useApp } from '../../context/AppContext'
 import * as db from '../../data/db'
-import { StatusPill } from '../../components/ui'
+import { ConfirmModal, StatusPill } from '../../components/ui'
 import { useT } from '../../i18n'
 
 export default function PaymentsAdmin() {
@@ -11,6 +11,11 @@ export default function PaymentsAdmin() {
   const [typeFilter, setTypeFilter] = useState<'all' | 'SUBSCRIPTION' | 'BOOK_PURCHASE'>('all')
   const [statusFilter, setStatusFilter] = useState<'all' | 'SUCCESS' | 'FAILED' | 'REFUNDED'>('all')
   const actor = user?.name ?? 'Admin'
+  const [confirmRefund, setConfirmRefund] = useState<{
+    id: string
+    ref: string
+    amount: number
+  } | null>(null)
   const refresh = () => setTick((t) => t + 1)
 
   const payments = db.allPayments()
@@ -26,13 +31,20 @@ export default function PaymentsAdmin() {
   const refunded = payments.filter((p) => p.status === 'REFUNDED')
 
   const onRefund = (id: string, ref: string, amount: number) => {
-    if (!window.confirm(t('admin.payments.confirmRefund', { ref, amount: amount.toFixed(2) }))) return
-    db.refundPayment(id, actor)
-    toast(t('admin.payments.refundedToast', { ref }), 'success')
+    setConfirmRefund({ id, ref, amount })
+  }
+
+  const confirmRefundPayment = () => {
+    if (!confirmRefund) return
+
+    db.refundPayment(confirmRefund.id, actor)
+    toast(t('admin.payments.refundedToast', { ref: confirmRefund.ref }), 'success')
+    setConfirmRefund(null)
     refresh()
   }
 
   return (
+    <>
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-ink">{t('admin.payments.title')}</h1>
@@ -129,5 +141,21 @@ export default function PaymentsAdmin() {
         </div>
       </div>
     </div>
+
+      <ConfirmModal
+        open={confirmRefund !== null}
+        title={t('admin.payments.confirmRefundTitle')}
+        message={
+          confirmRefund
+            ? t('admin.payments.confirmRefundMsg', { ref: confirmRefund.ref, amount: confirmRefund.amount.toFixed(2) })
+            : t('admin.payments.confirmRefundGeneric')
+        }
+        confirmLabel={t('admin.payments.refund')}
+        cancelLabel={t('admin.payments.cancel')}
+        danger
+        onConfirm={confirmRefundPayment}
+        onCancel={() => setConfirmRefund(null)}
+      />
+    </>
   )
 }
