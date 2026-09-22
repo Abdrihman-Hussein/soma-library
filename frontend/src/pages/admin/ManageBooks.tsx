@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useApp } from '../../context/AppContext'
 import * as db from '../../data/db'
 import { Cover } from '../../components/Cover'
-import { Icon, StatusPill } from '../../components/ui'
+import { ConfirmModal, Icon, StatusPill } from '../../components/ui'
 import { useT } from '../../i18n'
 
 export default function ManageBooks() {
@@ -14,6 +14,14 @@ export default function ManageBooks() {
   const [tab, setTab] = useState<'all' | 'library' | 'store' | 'both' | 'draft'>('all')
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [tick, setTick] = useState(0)
+
+  const [confirmDelete, setConfirmDelete] = useState<{
+    type: 'single' | 'bulk'
+    id?: string
+    title?: string
+    count?: number
+    ids?: string[]
+  } | null>(null)
 
   const actor = user?.name ?? 'Admin'
   const refresh = () => setTick((t) => t + 1)
@@ -41,18 +49,18 @@ export default function ManageBooks() {
     })
 
   const onDelete = (id: string, title: string) => {
-    if (!window.confirm(t('admin.books.confirmDelete', { title }))) return
-    db.deleteBook(id, actor)
-    toast(t('admin.books.deleted'), 'success')
-    refresh()
+    setConfirmDelete({ type: 'single', id, title })
   }
 
   const bulk = (status: db.BookStatus | 'DELETE') => {
     const ids = [...selected]
     if (status === 'DELETE') {
-      if (!window.confirm(t('admin.books.confirmBulk', { count: ids.length }))) return
-      ids.forEach((id) => db.deleteBook(id, actor))
-      toast(t('admin.books.deletedCount', { count: ids.length }), 'success')
+      setConfirmDelete({
+        type: 'bulk',
+        count: ids.length,
+        ids,
+      })
+      return
     } else {
       db.setBookStatus(ids, status, actor)
       toast(t('admin.books.setToStatus', { count: ids.length, status: status.toLowerCase() }), 'success')
@@ -201,6 +209,46 @@ export default function ManageBooks() {
           <button onClick={() => setSelected(new Set())} className="text-canvas/60 transition-colors hover:text-canvas" aria-label={t('admin.books.clearSelection')}><Icon.X className="h-4 w-4" /></button>
         </div>
       )}
+
+      <ConfirmModal
+        open={confirmDelete !== null}
+        title={
+          confirmDelete?.type === 'bulk'
+            ? 'Delete selected books?'
+            : 'Delete book?'
+        }
+        message={
+          confirmDelete?.type === 'bulk'
+            ? `Delete ${confirmDelete.count ?? 0} book(s)? This cannot be undone.`
+            : `Delete "${confirmDelete?.title ?? ''}"? This cannot be undone.`
+        }
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        danger
+        onConfirm={() => {
+          if (!confirmDelete) return
+
+          if (confirmDelete.type === 'single' && confirmDelete.id) {
+            db.deleteBook(confirmDelete.id, actor)
+            toast('Book deleted', 'success')
+          }
+
+          if (confirmDelete.type === 'bulk') {
+            const ids = confirmDelete.ids ?? []
+
+            ids.forEach((id) => {
+              db.deleteBook(id, actor)
+            })
+
+            toast(`${ids.length} book(s) deleted`, 'success')
+            setSelected(new Set())
+          }
+
+          setConfirmDelete(null)
+          refresh()
+        }}
+        onCancel={() => setConfirmDelete(null)}
+      />
     </div>
   )
 }
