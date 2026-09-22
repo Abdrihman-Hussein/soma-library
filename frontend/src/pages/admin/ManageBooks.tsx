@@ -4,9 +4,11 @@ import { useApp } from '../../context/AppContext'
 import * as db from '../../data/db'
 import { Cover } from '../../components/Cover'
 import { Icon, StatusPill } from '../../components/ui'
+import { useT } from '../../i18n'
 
 export default function ManageBooks() {
   const { toast, user } = useApp()
+  const { t, lang } = useT()
   const navigate = useNavigate()
   const [q, setQ] = useState('')
   const [tab, setTab] = useState<'all' | 'library' | 'store' | 'both' | 'draft'>('all')
@@ -39,46 +41,46 @@ export default function ManageBooks() {
     })
 
   const onDelete = (id: string, title: string) => {
-    if (!window.confirm(`Delete "${title}"? This cannot be undone.`)) return
+    if (!window.confirm(t('admin.books.confirmDelete', { title }))) return
     db.deleteBook(id, actor)
-    toast('Book deleted', 'success')
+    toast(t('admin.books.deleted'), 'success')
     refresh()
   }
 
   const bulk = (status: db.BookStatus | 'DELETE') => {
     const ids = [...selected]
     if (status === 'DELETE') {
-      if (!window.confirm(`Delete ${ids.length} book(s)? This cannot be undone.`)) return
+      if (!window.confirm(t('admin.books.confirmBulk', { count: ids.length }))) return
       ids.forEach((id) => db.deleteBook(id, actor))
-      toast(`${ids.length} book(s) deleted`, 'success')
+      toast(t('admin.books.deletedCount', { count: ids.length }), 'success')
     } else {
       db.setBookStatus(ids, status, actor)
-      toast(`${ids.length} book(s) set to ${status.toLowerCase()}`, 'success')
+      toast(t('admin.books.setToStatus', { count: ids.length, status: status.toLowerCase() }), 'success')
     }
     setSelected(new Set())
     refresh()
   }
 
   const tabs = [
-    { id: 'all', label: `All ${books.length}` },
-    { id: 'library', label: `Library ${books.filter((b) => b.library).length}` },
-    { id: 'store', label: `Store ${books.filter((b) => b.store).length}` },
-    { id: 'both', label: `Both ${books.filter((b) => b.library && b.store).length}` },
-    { id: 'draft', label: `Draft ${books.filter((b) => b.status === 'DRAFT').length}` },
+    { id: 'all', label: t('admin.books.tabAll', { count: books.length }) },
+    { id: 'library', label: t('admin.books.tabLibrary', { count: books.filter((b) => b.library).length }) },
+    { id: 'store', label: t('admin.books.tabStore', { count: books.filter((b) => b.store).length }) },
+    { id: 'both', label: t('admin.books.tabBoth', { count: books.filter((b) => b.library && b.store).length }) },
+    { id: 'draft', label: t('admin.books.tabDraft', { count: books.filter((b) => b.status === 'DRAFT').length }) },
   ] as const
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-bold text-ink">Books ({books.length})</h1>
-        <Link to="/admin/books/new" className="btn-primary !min-h-10 text-sm">+ Add Book</Link>
+        <h1 className="text-xl font-bold text-ink">{t('admin.books.title', { count: books.length })}</h1>
+        <Link to="/admin/books/new" className="btn-primary !min-h-10 text-sm">{t('admin.books.addBook')}</Link>
       </div>
 
       {/* Search + filters */}
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative min-w-56 flex-1">
           <Icon.Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-faint" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search title, author..." className="input pl-9" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('admin.books.searchPh')} className="input pl-9" />
         </div>
       </div>
 
@@ -98,15 +100,15 @@ export default function ManageBooks() {
             <thead>
               <tr className="border-b border-divider bg-canvas text-left text-[11px] uppercase tracking-wide text-ink-faint">
                 <th className="w-10 px-3 py-2.5">
-                  <span className="sr-only">Select</span>
+                  <span className="sr-only">{t('admin.books.select')}</span>
                 </th>
-                <th className="px-3 py-2.5 font-semibold">Book</th>
-                <th className="px-3 py-2.5 font-semibold">Category</th>
-                <th className="px-3 py-2.5 font-semibold">Library</th>
-                <th className="px-3 py-2.5 font-semibold">Store Price</th>
-                <th className="px-3 py-2.5 font-semibold">Status</th>
-                <th className="px-3 py-2.5 font-semibold">PDF</th>
-                <th className="px-3 py-2.5 font-semibold">Updated</th>
+                <th className="px-3 py-2.5 font-semibold">{t('admin.books.book')}</th>
+                <th className="px-3 py-2.5 font-semibold">{t('admin.books.category')}</th>
+                <th className="px-3 py-2.5 font-semibold">{t('admin.books.library')}</th>
+                <th className="px-3 py-2.5 font-semibold">{t('admin.books.storePrice')}</th>
+                <th className="px-3 py-2.5 font-semibold">{t('admin.books.status')}</th>
+                <th className="px-3 py-2.5 font-semibold">{t('admin.books.pdf')}</th>
+                <th className="px-3 py-2.5 font-semibold">{t('admin.books.updated')}</th>
                 <th className="px-3 py-2.5" />
               </tr>
             </thead>
@@ -118,7 +120,7 @@ export default function ManageBooks() {
                       type="checkbox"
                       checked={selected.has(b.id)}
                       onChange={() => toggle(b.id)}
-                      aria-label={`Select ${b.title}`}
+                      aria-label={t('admin.books.selectBook', { title: b.title })}
                       className="h-4 w-4 accent-[#0F766E]"
                     />
                   </td>
@@ -133,11 +135,11 @@ export default function ManageBooks() {
                       </div>
                     </div>
                   </td>
-                  <td className="px-3 py-2.5 text-xs text-ink-soft">{db.categoryName(b.categoryId, 'en')}</td>
+                  <td className="px-3 py-2.5 text-xs text-ink-soft">{db.categoryName(b.categoryId, lang)}</td>
                   <td className="px-3 py-2.5">
                     {b.library
-                      ? <span className="rounded-[3px] bg-[#E4EFE5] px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-[#2B5C3D]">Yes</span>
-                      : <span className="rounded-[3px] bg-inset px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-ink-faint">No</span>}
+                      ? <span className="rounded-[3px] bg-[#E4EFE5] px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-[#2B5C3D]">{t('admin.books.yes')}</span>
+                      : <span className="rounded-[3px] bg-inset px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-ink-faint">{t('admin.books.no')}</span>}
                   </td>
                   <td className="px-3 py-2.5 font-bold text-primary-dark">{b.price != null ? `$${b.price.toFixed(2)}` : '—'}</td>
                   <td className="px-3 py-2.5"><StatusPill status={b.status} /></td>
@@ -152,21 +154,21 @@ export default function ManageBooks() {
                       <button
                         onClick={() => navigate(`/admin/books/${b.id}`)}
                         className="rounded p-1.5 hover:bg-canvas hover:text-primary"
-                        title="Edit"
+                        title={t('admin.books.edit')}
                       >
                         <Icon.Pencil className="h-4 w-4" />
                       </button>
                       <Link
                         to={`/book/${b.id}`}
                         className="rounded p-1.5 hover:bg-canvas hover:text-primary"
-                        title="View"
+                        title={t('admin.books.view')}
                       >
                         <Icon.Eye className="h-4 w-4" />
                       </Link>
                       <button
                         onClick={() => onDelete(b.id, b.title)}
                         className="rounded p-1.5 hover:bg-[#F7E2DC] hover:text-status-danger"
-                        title="Delete"
+                        title={t('admin.books.delete')}
                       >
                         <Icon.Trash className="h-4 w-4" />
                       </button>
@@ -177,7 +179,7 @@ export default function ManageBooks() {
               {filtered.length === 0 && (
                 <tr>
                   <td colSpan={9} className="px-3 py-10 text-center text-sm text-ink-faint">
-                    No books match this filter.
+                    {t('admin.books.noMatch')}
                   </td>
                 </tr>
               )}
@@ -185,18 +187,18 @@ export default function ManageBooks() {
           </table>
         </div>
         <div className="border-t border-divider px-4 py-2.5 text-xs text-ink-faint">
-          Showing {filtered.length} of {books.length}
+          {t('admin.books.showing', { shown: filtered.length, total: books.length })}
         </div>
       </div>
 
       {/* Bulk actions bar */}
       {selected.size > 0 && (
         <div className="fixed bottom-6 left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-btn bg-ink px-5 py-2.5 text-sm text-canvas shadow-lift">
-          <span className="font-semibold">{selected.size} selected</span>
-          <button onClick={() => bulk('PUBLISHED')} className="rounded-[4px] bg-canvas/10 px-3 py-1 text-xs font-semibold transition-colors hover:bg-canvas/20">Publish</button>
-          <button onClick={() => bulk('ARCHIVED')} className="rounded-[4px] bg-canvas/10 px-3 py-1 text-xs font-semibold transition-colors hover:bg-canvas/20">Archive</button>
-          <button onClick={() => bulk('DELETE')} className="rounded-[4px] bg-status-danger px-3 py-1 text-xs font-semibold text-white transition-opacity hover:opacity-90">Delete</button>
-          <button onClick={() => setSelected(new Set())} className="text-canvas/60 transition-colors hover:text-canvas" aria-label="Clear selection"><Icon.X className="h-4 w-4" /></button>
+          <span className="font-semibold">{t('admin.books.selected', { count: selected.size })}</span>
+          <button onClick={() => bulk('PUBLISHED')} className="rounded-[4px] bg-canvas/10 px-3 py-1 text-xs font-semibold transition-colors hover:bg-canvas/20">{t('admin.books.publish')}</button>
+          <button onClick={() => bulk('ARCHIVED')} className="rounded-[4px] bg-canvas/10 px-3 py-1 text-xs font-semibold transition-colors hover:bg-canvas/20">{t('admin.books.archive')}</button>
+          <button onClick={() => bulk('DELETE')} className="rounded-[4px] bg-status-danger px-3 py-1 text-xs font-semibold text-white transition-opacity hover:opacity-90">{t('admin.books.deleteBtn')}</button>
+          <button onClick={() => setSelected(new Set())} className="text-canvas/60 transition-colors hover:text-canvas" aria-label={t('admin.books.clearSelection')}><Icon.X className="h-4 w-4" /></button>
         </div>
       )}
     </div>

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import * as db from '../../data/db'
 import { Icon } from '../../components/ui'
+import { useT } from '../../i18n'
 
 const actionStyle: Record<string, string> = {
   CREATE: 'bg-[#E4EFE5] text-[#2B5C3D]',
@@ -12,6 +13,7 @@ const actionStyle: Record<string, string> = {
 }
 
 export default function AuditLogs() {
+  const { t, lang } = useT()
   const [tick] = useState(0)
   const [action, setAction] = useState('all')
   const [q, setQ] = useState('')
@@ -29,20 +31,20 @@ export default function AuditLogs() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold text-ink">Audit Logs ({logs.length})</h1>
+      <h1 className="text-xl font-bold text-ink">{t('admin.audit.title', { count: logs.length })}</h1>
 
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative min-w-56 flex-1">
           <Icon.Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-faint" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search entity, details, actor..." className="input pl-9" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('admin.audit.searchPh')} className="input pl-9" />
         </div>
         <select
-          aria-label="Filter by action"
+          aria-label={t('admin.audit.filterAction')}
           className="input w-44"
           value={action}
           onChange={(e) => setAction(e.target.value)}
         >
-          <option value="all">Action: All</option>
+          <option value="all">{t('admin.audit.actionAll')}</option>
           {Object.keys(actionStyle).map((a) => <option key={a} value={a}>{a}</option>)}
         </select>
       </div>
@@ -52,18 +54,18 @@ export default function AuditLogs() {
           <table className="w-full min-w-200 text-sm">
             <thead>
               <tr className="border-b border-divider bg-canvas text-left text-[11px] uppercase tracking-wide text-ink-faint">
-                <th className="px-4 py-2.5 font-semibold">Timestamp</th>
-                <th className="px-4 py-2.5 font-semibold">Actor</th>
-                <th className="px-4 py-2.5 font-semibold">Action</th>
-                <th className="px-4 py-2.5 font-semibold">Entity</th>
-                <th className="px-4 py-2.5 font-semibold">Details</th>
+                <th className="px-4 py-2.5 font-semibold">{t('admin.audit.timestamp')}</th>
+                <th className="px-4 py-2.5 font-semibold">{t('admin.audit.actor')}</th>
+                <th className="px-4 py-2.5 font-semibold">{t('admin.audit.action')}</th>
+                <th className="px-4 py-2.5 font-semibold">{t('admin.audit.entity')}</th>
+                <th className="px-4 py-2.5 font-semibold">{t('admin.audit.details')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-divider">
               {filtered.map((l) => (
                 <tr key={l.id} className={`hover:bg-inset/40 ${l.action === 'DELETE' ? 'bg-[#F7E2DC]/40' : ''}`}>
                   <td className="whitespace-nowrap px-4 py-2.5 text-xs text-ink-soft">
-                    {new Date(l.timestamp).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    {new Date(l.timestamp).toLocaleString(lang === 'so' ? 'so-SO' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                   </td>
                   <td className="px-4 py-2.5 text-xs font-semibold">{l.actor}</td>
                   <td className="px-4 py-2.5">
@@ -74,13 +76,13 @@ export default function AuditLogs() {
                 </tr>
               ))}
               {filtered.length === 0 && (
-                <tr><td colSpan={5} className="px-4 py-10 text-center text-sm text-ink-faint">No events match this filter.</td></tr>
+                <tr><td colSpan={5} className="px-4 py-10 text-center text-sm text-ink-faint">{t('admin.audit.empty')}</td></tr>
               )}
             </tbody>
           </table>
         </div>
         <div className="border-t border-divider px-4 py-2.5 text-xs text-ink-faint">
-          Showing {filtered.length} of {logs.length} events
+          {t('admin.audit.showing', { shown: filtered.length, total: logs.length })}
         </div>
       </div>
     </div>

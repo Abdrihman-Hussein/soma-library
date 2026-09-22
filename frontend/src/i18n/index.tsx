@@ -31,7 +31,7 @@ function lookup(dict: unknown, path: string): string | undefined {
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>(() => {
     const saved = localStorage.getItem('somalibrary.lang')
-    return saved === 'en' || saved === 'so' ? saved : 'so'
+    return saved === 'en' || saved === 'so' ? saved : 'en'
   })
 
   useEffect(() => {

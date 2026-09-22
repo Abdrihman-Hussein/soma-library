@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import type {
   Payment, PaymentMethod, Subscription, UserBook, Notification, Book,
@@ -78,6 +78,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // persist every mutation, so state survives refresh by construction.
   const [, setTick] = useState(0)
   const refresh = useCallback(() => setTick((t) => t + 1), [])
+
+  // Cross-tab sync: when another tab writes the db, reload and re-render.
+  // `storage` fires only in tabs that did NOT make the write — exactly the
+  // tabs holding stale in-memory state.
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== null && e.key !== db.DB_STORAGE_KEY) return
+      db.reloadDb()
+      refresh()
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [refresh])
 
   const user = db.currentUser()
 

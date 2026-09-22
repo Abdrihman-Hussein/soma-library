@@ -1,49 +1,32 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useT } from '../i18n'
 import { useApp } from '../context/AppContext'
 import { getBook } from '../data/db'
 import { Icon, LanguageSwitch } from '../components/ui'
+import { checkReaderFile, readerFileUrl, type ReaderFileStatus } from '../lib/api'
 
-// Mock PDF page content — replaced by the secure backend PDF stream in Phase 6
-const SAMPLE_PARAGRAPHS = [
-  'Wax yar oo maalin kasta waa mid ka fiican wax badan oo mar dambe ah. Xirfadaha waa midab nolosha.',
-  'Habka 1: Bilow wax yar. Haddii aad wax walba si ballaadhan u qaadato, waxaad ku guuleysan doontaa si fudud.',
-  'Small habits do not seem to make a difference in the moment, yet they compound into remarkable results over months and years.',
-  'You do not rise to the level of your goals; you fall to the level of your systems. Build better systems daily.',
-  'Waxaad noqotaa waxa aad si joogto ah u sameyso. Sidaa darteed, doorsoomayaasha yaryar ayaa muhiim ah.',
-]
-
-const FONT_STEPS = [
-  { label: 'S', size: '1rem', leading: '1.85' },
-  { label: 'M', size: '1.0625rem', leading: '1.85' },
-  { label: 'L', size: '1.1875rem', leading: '1.8' },
-]
+type ViewStatus = ReaderFileStatus | 'checking'
 
 export default function Reader() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { t, lang } = useT()
+  const { t } = useT()
   const { user, canRead, isSubscribed, progressFor, saveProgress } = useApp()
   const book = getBook(id ?? '')
 
-  const pages = useMemo(() => (book ? Math.min(book.pages, 352) : 0), [book])
+  const pages = book ? Math.max(1, book.pages) : 1
   const saved = book ? progressFor(book.id) : undefined
-  const [page, setPageState] = useState(() => {
-    if (saved && saved.lastPage > 1 && saved.lastPage <= pages) return saved.lastPage
-    return 1
-  })
-  const [font, setFont] = useState(1)
-  const [bookmarked, setBookmarked] = useState(false)
+  const [page, setPage] = useState(() =>
+    saved && saved.lastPage > 1 && saved.lastPage <= pages ? saved.lastPage : 1,
+  )
+  const [slider, setSlider] = useState(page)
+  const [status, setStatus] = useState<ViewStatus>('checking')
 
-  const setPage = (next: number | ((p: number) => number)) => {
-    setPageState((prev) => {
-      const value = typeof next === 'function' ? next(prev) : next
-      return value
-    })
-  }
+  const pdfPath = book?.pdfPath ?? ''
 
-  // Persist reading position (debounced by effect below)
+  // Reading position still persists, so Home's "continue reading" card and the
+  // My Books progress bars keep working now that the reader shows a real PDF.
   useEffect(() => {
     if (!book || !user) return
     const timer = window.setTimeout(() => {
@@ -52,36 +35,51 @@ export default function Reader() {
     return () => window.clearTimeout(timer)
   }, [book, user, page, pages, saveProgress])
 
-  const so = lang === 'so'
-  const step = FONT_STEPS[font]
+  useEffect(() => {
+    setSlider(page)
+  }, [page])
+
+  // The embedded viewer cannot report why it failed, so probe the file first
+  // and explain the failure instead of rendering an empty frame.
+  useEffect(() => {
+    if (!pdfPath) {
+      setStatus('missing')
+      return
+    }
+    let cancelled = false
+    setStatus('checking')
+    void checkReaderFile(pdfPath).then((next) => {
+      if (!cancelled) setStatus(next)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [pdfPath])
 
   if (!book) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-canvas text-ink-soft">404</div>
+      <div className="flex min-h-screen items-center justify-center bg-canvas text-ink-soft">
+        {t('common.notFound')}
+      </div>
     )
   }
 
-  // Access check (mock of the backend authorization in Phase 6)
+  // Access check. The API enforces this server-side as well once the reader
+  // token endpoint lands (#9/#10).
   if (!canRead(book.id)) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-canvas px-6 text-center">
         <span className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-status-warning bg-[#F6EAD3] text-[#85561A]">
           <Icon.Lock className="h-6 w-6" />
         </span>
-        <h1 className="display-title mt-2">
-          {so ? 'Gelitaan la xaday' : 'Access restricted'}
-        </h1>
-        <p className="lede max-w-sm">
-          {so
-            ? 'Waxaad u baahan tahay rukun firfiran ama iibsasho si aad u akhrido buuggan.'
-            : 'You need an active subscription or a purchase to read this book.'}
-        </p>
+        <h1 className="display-title mt-2">{t('reader.accessTitle')}</h1>
+        <p className="lede max-w-sm">{t('reader.accessBody')}</p>
         <div className="mt-4 flex gap-2">
           <button type="button" onClick={() => navigate(-1)} className="btn-outline">
             {t('common.back')}
           </button>
           <button type="button" onClick={() => navigate('/plans')} className="btn-primary">
-            {so ? 'Dooro qorshe' : 'Choose a plan'}
+            {t('reader.choosePlan')}
           </button>
         </div>
         {!isSubscribed && (
@@ -93,143 +91,137 @@ export default function Reader() {
     )
   }
 
-  const pct = Math.round((page / pages) * 100)
-  const chapter = page % 4 === 1 ? (so ? 'Habka 1: Wax yar oo maalin kasta' : 'Chapter 1: Small Habits, Big Results') : so ? 'Habka 2: Nidaamka' : 'Chapter 2: The System'
+  const statusText: Record<ViewStatus, string> = {
+    checking: t('reader.loading'),
+    ready: '',
+    locked: t('reader.locked'),
+    missing: t('reader.missing'),
+    offline: t('reader.offline'),
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-[#FBF7EF]">
-      {/* Reading chrome */}
       <header className="sticky top-0 z-30 border-b border-divider bg-[#FBF7EF]/92 backdrop-blur-xl">
-        <div className="mx-auto flex h-14 max-w-3xl items-center gap-3 px-4">
+        <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4">
           <button
             type="button"
             onClick={() => navigate(`/book/${book.id}`)}
             aria-label={t('common.back')}
-            className="flex h-9 w-9 items-center justify-center rounded-btn text-ink-soft transition-colors hover:bg-inset hover:text-ink"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-btn text-ink-soft transition-colors hover:bg-inset hover:text-ink"
           >
             <Icon.ArrowLeft className="h-4 w-4" />
           </button>
 
           <div className="min-w-0 flex-1">
-            {/* The reader is immersive and has no page heading otherwise, so the
-                running title doubles as the h1 for the document outline. */}
             <h1 className="truncate font-display text-sm font-semibold tracking-tight text-ink">
               {book.title}
             </h1>
-            <p className="tnum truncate text-[10px] uppercase tracking-[0.12em] text-ink-faint">
-              {t('reader.page')} {page} {t('reader.of')} {pages}
+            <p className="truncate text-[10px] uppercase tracking-[0.12em] text-ink-faint">
+              {book.author}
             </p>
           </div>
 
-          {/* Font size */}
-          <div className="hidden items-center rounded-btn border border-divider bg-surface p-0.5 sm:flex">
-            {FONT_STEPS.map((s, i) => (
-              <button
-                key={s.label}
-                type="button"
-                onClick={() => setFont(i)}
-                aria-pressed={font === i}
-                className={`h-7 w-7 rounded-[4px] text-[11px] font-bold transition-colors ${
-                  font === i ? 'bg-ink text-canvas' : 'text-ink-faint hover:text-ink'
-                }`}
-              >
-                {s.label}
-              </button>
-            ))}
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setBookmarked((b) => !b)}
-            aria-pressed={bookmarked}
-            aria-label={so ? 'Calaamadee' : 'Bookmark'}
-            className={`flex h-9 w-9 items-center justify-center rounded-btn transition-colors ${
-              bookmarked ? 'text-primary' : 'text-ink-faint hover:text-ink'
-            }`}
-          >
-            <Icon.Bookmark className={`h-4 w-4 ${bookmarked ? 'fill-current' : ''}`} />
-          </button>
-        </div>
-
-        {/* Progress */}
-        <div className="h-0.5 bg-inset">
-          <div className="h-full bg-primary transition-[width] duration-300" style={{ width: `${pct}%` }} />
+          {status === 'ready' && (
+            <a
+              href={readerFileUrl(pdfPath, page)}
+              target="_blank"
+              rel="noreferrer"
+              className="hidden shrink-0 text-xs font-semibold text-primary-dark hover:text-primary sm:block"
+            >
+              {t('reader.openNewTab')} ↗
+            </a>
+          )}
         </div>
       </header>
 
-      {/* Page */}
-      <main className="flex-1 px-5 py-12 md:py-16">
-        <article className="mx-auto max-w-[38rem] font-display text-ink">
-          <p className="eyebrow-plain mb-6">{chapter}</p>
+      <main className="flex-1 p-3 sm:p-5">
+        {status === 'ready' ? (
+          <iframe
+            key={page}
+            src={readerFileUrl(pdfPath, page)}
+            title={book.title}
+            className="h-[calc(100vh-9.5rem)] w-full rounded-card border border-divider bg-surface"
+          />
+        ) : (
+          <div className="flex h-[calc(100vh-9.5rem)] flex-col items-center justify-center gap-3 rounded-card border border-divider bg-surface px-6 text-center">
+            {status === 'checking' ? (
+              <span className="h-6 w-6 animate-spin rounded-full border-2 border-divider border-t-primary" />
+            ) : (
+              <span className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-status-warning bg-[#F6EAD3] text-[#85561A]">
+                <Icon.Lock className="h-5 w-5" />
+              </span>
+            )}
+            <p className="lede max-w-sm">{statusText[status]}</p>
+            {status === 'offline' && (
+              <code className="rounded-btn border border-divider bg-inset px-3 py-1.5 font-mono text-xs text-ink-soft">
+                cd backend &amp;&amp; npm run dev
+              </code>
+            )}
+            {status === 'locked' && (
+              <button type="button" onClick={() => navigate('/login')} className="btn-primary mt-2">
+                {t('common.login')}
+              </button>
+            )}
+            {status === 'missing' && (
+              <button
+                type="button"
+                onClick={() => navigate(`/book/${book.id}`)}
+                className="btn-outline mt-2"
+              >
+                {t('common.back')}
+              </button>
+            )}
+          </div>
+        )}
+      </main>
 
-          <p
-            className="drop-cap text-pretty"
-            style={{ fontSize: step.size, lineHeight: step.leading }}
-          >
-            {SAMPLE_PARAGRAPHS[0]}
-          </p>
-
-          {SAMPLE_PARAGRAPHS.slice(1).map((p, i) => (
-            <p
-              key={i}
-              className="mt-6 text-pretty"
-              style={{ fontSize: step.size, lineHeight: step.leading }}
-            >
-              {p}
-            </p>
-          ))}
-
-          {/* Per-user watermark (anti-piracy) */}
-          <p className="mt-14 border-t border-divider pt-5 text-center text-[9px] uppercase tracking-[0.16em] text-ink-faint/70">
-            © SomaLibrary · {user?.email ?? 'guest@example.com'} · {new Date().getFullYear()}
-          </p>
-        </article>
-
-        {/* Page controls */}
-        <div className="mx-auto mt-12 flex max-w-[38rem] items-center justify-between gap-4">
+      <footer className="sticky bottom-0 border-t border-divider bg-[#FBF7EF]/92 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
           <button
             type="button"
             disabled={page <= 1}
             onClick={() => setPage((p) => Math.max(1, p - 1))}
-            className="btn-outline !px-4 disabled:opacity-40"
+            className="btn-outline !min-h-9 !px-3 text-xs disabled:opacity-40"
           >
-            <Icon.ArrowLeft className="h-4 w-4" />
-            {so ? 'Hore' : 'Previous'}
+            <Icon.ArrowLeft className="h-3.5 w-3.5" />
+            {t('reader.previous')}
           </button>
 
-          <span className="tnum text-xs font-semibold text-ink-faint">{pct}%</span>
+          <span className="tnum shrink-0 text-[11px] font-semibold text-ink-soft">
+            {page} {t('reader.of')} {pages}
+          </span>
+
+          <input
+            type="range"
+            min={1}
+            max={pages}
+            value={slider}
+            onChange={(e) => setSlider(Number(e.target.value))}
+            onPointerUp={() => setPage(slider)}
+            onKeyUp={() => setPage(slider)}
+            aria-label={t('reader.page')}
+            className="h-1 flex-1 cursor-pointer accent-primary"
+          />
 
           <button
             type="button"
             disabled={page >= pages}
             onClick={() => setPage((p) => Math.min(pages, p + 1))}
-            className="btn-outline !px-4 disabled:opacity-40"
+            className="btn-outline !min-h-9 !px-3 text-xs disabled:opacity-40"
           >
-            {so ? 'Xiga' : 'Next'}
-            <Icon.ChevronRight className="h-4 w-4" />
+            {t('reader.next')}
+            <Icon.ChevronRight className="h-3.5 w-3.5" />
           </button>
-        </div>
-      </main>
 
-      {/* Footer controls */}
-      <footer className="sticky bottom-0 border-t border-divider bg-[#FBF7EF]/92 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-3xl items-center gap-4 px-4 py-3">
-          <span className="tnum shrink-0 text-[11px] font-semibold text-ink-soft">
-            {page} / {pages}
-          </span>
-          <input
-            type="range"
-            min={1}
-            max={pages}
-            value={page}
-            onChange={(e) => setPage(Number(e.target.value))}
-            aria-label={t('reader.page')}
-            className="h-1 flex-1 cursor-pointer accent-primary"
-          />
           <div className="hidden sm:block">
             <LanguageSwitch compact />
           </div>
         </div>
+
+        {/* Per-user watermark (anti-piracy) */}
+        <p className="pb-2 text-center text-[9px] uppercase tracking-[0.16em] text-ink-faint/70">
+          © SomaLibrary · {user?.email ?? 'guest@example.com'} · {new Date().getFullYear()}
+        </p>
       </footer>
     </div>
   )

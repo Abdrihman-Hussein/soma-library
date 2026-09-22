@@ -40,7 +40,10 @@ export interface DbState {
 // ── Persistence ────────────────────────────────────────────────────
 
 const KEY = 'somalibrary.db.v1'
-const VERSION = 1
+const VERSION = 2
+
+/** The localStorage key backing the db — listen for it in `storage` events for cross-tab sync. */
+export const DB_STORAGE_KEY = KEY
 
 export function loadDb(): DbState {
   try {
@@ -48,6 +51,10 @@ export function loadDb(): DbState {
     if (raw) {
       const parsed = JSON.parse(raw) as DbState
       if (parsed.version === VERSION) return parsed
+      // Older stored state is upgraded in place — never silently discarded.
+      const migrated = migrate(parsed)
+      saveDb(migrated)
+      return migrated
     }
   } catch {
     // corrupt state — fall through and reseed
@@ -55,6 +62,22 @@ export function loadDb(): DbState {
   const seeded = seed()
   saveDb(seeded)
   return seeded
+}
+
+/**
+ * Upgrades stored state in place instead of throwing it away, so existing
+ * accounts, carts and reading progress survive a schema change.
+ */
+function migrate(state: DbState): DbState {
+  const books = (state.books ?? []) as Array<DbBook & { pdfPath?: string }>
+  const needsPdfPaths = state.version < 2
+  return {
+    ...state,
+    version: VERSION,
+    books: books.map((book) =>
+      needsPdfPaths ? { ...book, pdfPath: book.pdfPath ?? samplePdfForBook(book.id) } : book,
+    ) as DbBook[],
+  }
 }
 
 export function saveDb(state: DbState): void {
@@ -148,7 +171,16 @@ const categories: Category[] = [
   { id: 'tech', nameSo: 'Tignoolajiyad', nameEn: 'Technology' },
 ]
 
-type SeedBook = DbBook
+type SeedBook = Omit<DbBook, 'pdfPath'> & { pdfPath?: string }
+
+/** Demo PDFs shipped in backend/fixtures/pdfs — the API serves them by filename. */
+const SAMPLE_PDFS = ['sample-book-1.pdf', 'sample-book-2.pdf', 'sample-book-3.pdf']
+
+/** One mapping for both the seed and the v1→v2 migration, so they cannot drift. */
+function samplePdfForBook(id: string): string {
+  const index = Number.parseInt(id.replace(/\D/g, ''), 10)
+  return SAMPLE_PDFS[(Number.isNaN(index) ? 0 : Math.max(0, index - 1)) % SAMPLE_PDFS.length]
+}
 
 const books: SeedBook[] = [
   {
@@ -347,7 +379,10 @@ function seed(): DbState {
   return {
     version: VERSION,
     users,
-    books: books as DbBook[],
+    books: books.map((book) => ({
+      ...book,
+      pdfPath: book.pdfPath ?? samplePdfForBook(book.id),
+    })) as DbBook[],
     categories,
     plans,
     subscriptions: subs,
@@ -367,6 +402,17 @@ let db: DbState = loadDb()
 
 function flush(): void {
   saveDb(db)
+}
+
+/**
+ * Re-read state from localStorage, discarding in-memory changes.
+ * Call this when another tab writes to storage (see `storage` listener in
+ * AppContext) so tabs stay in sync. Last writer still wins per key write —
+ * acceptable for the localStorage prototype; the API layer resolves this
+ * permanently (see #2).
+ */
+export function reloadDb(): void {
+  db = loadDb()
 }
 
 // ── Books ──
@@ -764,7 +810,7 @@ export interface BookInput {
   store: boolean
   price: number | null
   status: BookStatus
-  pdfName?: string | null
+  pdfPath: string
 }
 
 function estimateSize(pages: number): string {

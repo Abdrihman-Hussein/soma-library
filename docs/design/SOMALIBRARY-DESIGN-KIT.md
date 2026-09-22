@@ -1,13 +1,21 @@
 # 📚 SOMALIBRARY — COMPLETE DESIGN KIT
-### Google Stitch Edition · Somali Flag Blue & White · v0.1.0
+### Google Stitch Edition · v0.1.1
+
+> **⚠️ Implementation note (Sep 2026):** the running frontend implements a **warm editorial**
+> theme (teal `#0F766E` + brass `#A87C3C` on paper `#F5F0E6`, Fraunces display + Inter) —
+> see `frontend/tailwind.config.js` + `frontend/src/index.css`, summarized in README
+> "Design — implemented theme". Parts 1–4 below preserve the original `#4189DE`
+> Stitch concept as design history. The app implements **24 screens (15 user + 9 admin)** —
+> Part 2 expected 23 (15+8) and missed the Payments admin screen; the addendum in Part 2
+> documents the drift. Do not restyle the app back to `#4189DE` without a design decision.
 
 Everything you need to build the full design in Google Stitch (stitch.withgoogle.com) is in **this one file**.
 
 **Contents:**
-1. [Design System](#part-1--design-system) — colors, fonts, components
-2. [Screen Inventory & Batch Plan](#part-2--screen-inventory--batch-plan) — all 23 screens
+1. [Design System](#part-1--design-system) — colors, fonts, components (original Stitch concept — see note above)
+2. [Screen Inventory & Batch Plan](#part-2--screen-inventory--batch-plan) — all 24 screens (15 user + 9 admin)
 3. [Stitch Prompts — User App](#part-3--stitch-prompts--user-app-15-screens) — 15 mobile screens
-4. [Stitch Prompts — Admin](#part-4--stitch-prompts--admin-8-screens) — 8 desktop screens
+4. [Stitch Prompts — Admin](#part-4--stitch-prompts--admin-9-screens) — 9 desktop screens
 5. [Bilingual UI Text](#part-5--bilingual-ui-text-soomaali-english) — Soomaali/English strings
 6. [Stitch Workflow Guide](#part-6--stitch-workflow-guide) — step-by-step how-to
 
@@ -15,6 +23,10 @@ Everything you need to build the full design in Google Stitch (stitch.withgoogle
 ---
 
 # PART 1 — DESIGN SYSTEM
+
+> **Original Stitch concept — preserved as history.** The shipped frontend uses the warm
+> editorial theme (teal/brass/paper, Fraunces + Inter) documented in the README.
+> Keep this section unchanged for Stitch regenerations; do not treat `#4189DE` as code truth.
 
 **Theme: Somali Flag Blue & White** — clean & minimal, mobile-first.
 
@@ -136,7 +148,15 @@ Clean minimal mobile-first UI, white cards on a very light blue-gray background 
 
 # PART 2 — SCREEN INVENTORY & BATCH PLAN
 
-Total: **23 screens** — 15 user + 8 admin. Generate in 6 batches.
+Total: **24 screens** — 15 user + 9 admin. Generate in 6 batches.
+
+> **Drift addendum (Sep 2026, verified against `frontend/src/App.tsx`):**
+> this kit originally listed 23 screens (15+8) and missed the **Payments** admin screen.
+> The app implements 9 admin screens — Dashboard, Manage Books, Add/Edit Book,
+> Manage Users, Manage Subscriptions, **Payments** (`/admin/payments`), Reports,
+> Audit Logs, Settings. Batch 6 below is corrected. Implemented theme tokens live in
+> `frontend/tailwind.config.js` (teal `#0F766E`, brass `#A87C3C`, paper `#F5F0E6`,
+> Fraunces + Inter), not the `#4189DE` Stitch concept in Part 1.
 
 **Order of work:** generate batch → review in Stitch → "Refine" only text/spacing errors → export to Figma → next batch.
 
@@ -149,7 +169,7 @@ Total: **23 screens** — 15 user + 8 admin. Generate in 6 batches.
 | 3 | S07 My Books, S08 PDF Reader, S09 Subscription Plans, S10 Payment Result | Standard mode |
 | 4 | S11 Login, S12 Register, S13 Profile, S14 Search/Filter, S15 Notifications | Standard mode |
 | 5 | A01 Admin Dashboard, A02 Manage Books, A03 Add/Edit Book | Standard mode |
-| 6 | A04 Manage Users, A05 Manage Subscriptions, A06 Reports, A07 Audit Logs, A08 Admin Settings | Standard mode |
+| 6 | A04 Manage Users, A05 Manage Subscriptions, A06 Payments, A07 Reports, A08 Audit Logs, A09 Admin Settings | Standard mode |
 
 ## 2.2 User App (15 screens)
 
@@ -171,18 +191,19 @@ Total: **23 screens** — 15 user + 8 admin. Generate in 6 batches.
 | S14 | Search & Filter | MVP | Search field, chip filters, results count |
 | S15 | Notifications | MVP | Grouped list: subscription, payment, book events |
 
-## 2.3 Admin Web (8 screens)
+## 2.3 Admin Web (9 screens)
 
-| ID | Screen | Priority | Key elements |
-|---|---|---|---|
-| A01 | Dashboard | MVP | 8 KPI cards + revenue chart + popular books table |
-| A02 | Manage Books | MVP | Table with covers, status pills, actions menu |
-| A03 | Add/Edit Book | MVP | Form, PDF upload dropzone, toggles Library/Store |
-| A04 | Manage Users | MVP | Table, search, status pills, suspend action |
-| A05 | Manage Subscriptions | MVP | Plans editor + active subscriptions table |
-| A06 | Reports | MVP | Tabs Library/Store, charts, top lists |
-| A07 | Audit Logs | MVP | Filterable log table |
-| A08 | Admin Settings | Low | Payment providers, admin users, language defaults |
+| ID | Screen | Route | Priority | Key elements |
+|---|---|---|---|---|
+| A01 | Dashboard | `/admin` | MVP | 8 KPI cards + revenue chart + popular books table |
+| A02 | Manage Books | `/admin/books` | MVP | Table with covers, status pills, actions menu |
+| A03 | Add/Edit Book | `/admin/books/new`, `/admin/books/:id` | MVP | Form, PDF upload dropzone, toggles Library/Store |
+| A04 | Manage Users | `/admin/users` | MVP | Table, search, status pills, suspend action |
+| A05 | Manage Subscriptions | `/admin/subscriptions` | MVP | Plans editor + active subscriptions table |
+| A06 | Payments | `/admin/payments` | MVP | Payments table, refunds, method/status filters |
+| A07 | Reports | `/admin/reports` | MVP | Tabs Library/Store, charts, top lists |
+| A08 | Audit Logs | `/admin/audit` | MVP | Filterable log table |
+| A09 | Admin Settings | `/admin/settings` | Low | Payment providers, admin users, language defaults |
 
 ## 2.4 Acceptance checklist (per screen)
 
@@ -473,7 +494,7 @@ LAYOUT:
 ---
 ---
 
-# PART 4 — STITCH PROMPTS: ADMIN (8 SCREENS)
+# PART 4 — STITCH PROMPTS: ADMIN (9 SCREENS)
 
 Admin is a **desktop web dashboard**. In Stitch choose **Web/Desktop** format for these. Make a separate Stitch project: `SomaLibrary – Admin`.
 
@@ -559,7 +580,32 @@ LAYOUT:
 - A small summary strip: "Active 312 · Expiring in 7 days 41 · Expired 96" as three mini stat cards.
 ```
 
-## A06 — Reports
+## A06 — Payments
+
+```text
+Design a desktop "Payments" admin screen for SomaLibrary (this screen was missing
+from the original kit — it exists in the app at /admin/payments).
+
+STYLE: [same style prompt as A01]
+
+LAYOUT:
+- Same sidebar; Payments active.
+- Top bar: title "Payments", search "Search reference, user, email...", method filter
+  dropdown (All, EVC Plus, ZAAD Service, Card), status filter (SUCCESS, PENDING,
+  FAILED, REFUNDED), and an "Export CSV" outline button.
+- 4 small stat chips above the table: "Collected (30d) $4,210", "Pending 6",
+  "Failed 3", "Refunded $42".
+- Table columns: Ref (mono, e.g. SML-2026-00841), User (avatar + name, email gray),
+  Type pill (SUBSCRIPTION blue / BOOK_PURCHASE purple-ish blue), Amount bold USD,
+  Method (EVC Plus, ZAAD Service, Card), Status pill (SUCCESS green, PENDING amber,
+  FAILED red, REFUNDED gray), Date, row actions (view receipt, refund with confirm).
+- One SUCCESS row selected showing a receipt drawer: full breakdown, user, plan or
+  book list, timeline (Created → Verified → Granted), and a "Refund" danger button
+  with confirm note.
+- Pagination footer: "Showing 1–10 of 892".
+```
+
+## A07 — Reports
 
 ```text
 Design a desktop "Reports" admin screen for SomaLibrary.
@@ -576,7 +622,7 @@ LAYOUT:
 - A secondary tab state hint: Library tab contains reads-per-book table, subscription starts/cancellations chart, and active vs expired donut.
 ```
 
-## A07 — Audit Logs
+## A08 — Audit Logs
 
 ```text
 Design a desktop "Audit Logs" admin screen for SomaLibrary.
@@ -591,7 +637,7 @@ LAYOUT:
 - Pagination footer.
 ```
 
-## A08 — Admin Settings
+## A09 — Admin Settings
 
 ```text
 Design a desktop "Settings" admin screen for SomaLibrary.
@@ -865,7 +911,7 @@ Use these exact strings in your Stitch designs (keep the Somali in the design). 
 ## Step 0 — Prepare (5 minutes)
 
 1. Sign in at stitch.withgoogle.com with your Google account.
-2. You will generate **23 screens** in 6 batches (see Part 2).
+2. You will generate **24 screens** in 6 batches (see Part 2).
 3. Keep this file open while you work — it has everything: colors (Part 1), prompts (Parts 3–4), strings (Part 5).
 
 ## Step 1 — Create the project
@@ -873,7 +919,7 @@ Use these exact strings in your Stitch designs (keep the Somali in the design). 
 1. Click **New project**.
 2. Choose format:
    - **Mobile** for the 15 user screens (S01–S15)
-   - **Web/Desktop** for the 8 admin screens (A01–A08)
+   - **Web/Desktop** for the 9 admin screens (A01–A09)
 3. Tip: make two Stitch projects — `SomaLibrary – Mobile App` and `SomaLibrary – Admin` — so formats don't clash.
 
 ## Step 2 — Generate a screen
@@ -939,5 +985,7 @@ Make bottom nav icons outline style with 11px labels
 
 ---
 
-*SomaLibrary Design Kit v0.1.0 · September 2026 · 🇸🇴 Soomaali | 🇬🇧 English*
+*SomaLibrary Design Kit v0.1.1 · September 2026 · 🇸🇴 Soomaali | 🇬🇧 English*
+*· v0.1.1: corrected inventory 23→24 screens (added missing A06 Payments), documented
+implemented warm-editorial theme vs original Stitch concept — docs only, no code touched.*
 
