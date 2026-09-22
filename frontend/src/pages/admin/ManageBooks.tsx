@@ -18,6 +18,7 @@ export default function ManageBooks() {
     id?: string
     title?: string
     count?: number
+    ids?: string[]
   } | null>(null)
 
   const actor = user?.name ?? 'Admin'
@@ -55,6 +56,7 @@ export default function ManageBooks() {
       setConfirmDelete({
         type: 'bulk',
         count: ids.length,
+        ids,
       })
       return
     } else {
@@ -230,7 +232,7 @@ export default function ManageBooks() {
           }
 
           if (confirmDelete.type === 'bulk') {
-            const ids = [...selected]
+            const ids = confirmDelete.ids ?? []
 
             ids.forEach((id) => {
               db.deleteBook(id, actor)
