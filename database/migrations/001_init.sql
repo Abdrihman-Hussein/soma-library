@@ -14,7 +14,8 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash VARCHAR(255) NOT NULL,
     role ENUM('reader', 'admin') DEFAULT 'reader',
     status ENUM('active', 'suspended') DEFAULT 'active',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
 -- 2. Miiska Qaybaha Buugaagta (categories)
@@ -36,8 +37,11 @@ CREATE TABLE IF NOT EXISTS books (
     price_usd DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
     status ENUM('PUBLISHED', 'DRAFT', 'ARCHIVED') DEFAULT 'PUBLISHED',
     pdf_path VARCHAR(255),
-    pdf_size INT,
-    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
+    pdf_size BIGINT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL,
+    INDEX idx_books_category_id (category_id)
 ) ENGINE=InnoDB;
 
 -- 4. Miiska Qorshayaasha Xubinnimada (plans)
@@ -56,9 +60,12 @@ CREATE TABLE IF NOT EXISTS subscriptions (
     plan_id INT NOT NULL,
     starts_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     expires_at TIMESTAMP NOT NULL,
-    status VARCHAR(50) NOT NULL,
+    status ENUM('active', 'expired', 'cancelled') NOT NULL DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (plan_id) REFERENCES plans(id) ON DELETE CASCADE
+    FOREIGN KEY (plan_id) REFERENCES plans(id) ON DELETE CASCADE,
+    INDEX idx_subscriptions_user_id (user_id)
 ) ENGINE=InnoDB;
 
 -- 6. Miiska Lacag-bixinta (payments)
@@ -70,14 +77,15 @@ CREATE TABLE IF NOT EXISTS payments (
     status ENUM('pending', 'confirmed', 'refunded', 'failed') DEFAULT 'pending',
     reference VARCHAR(150) UNIQUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_payments_user_id (user_id)
 ) ENGINE=InnoDB;
 
 -- 7. Miiska Gaariga Wax-iibsiga (cart_items)
 CREATE TABLE IF NOT EXISTS cart_items (
     user_id INT NOT NULL,
     book_id INT NOT NULL,
-    qty INT NOT NULL DEFAULT 1,
+    qty INT NOT NULL DEFAULT 1 CHECK (qty > 0),
     PRIMARY KEY (user_id, book_id),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE
@@ -102,6 +110,7 @@ CREATE TABLE IF NOT EXISTS reading_progress (
     total_pages INT DEFAULT 0,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY unique_user_book (user_id, book_id),
+    CHECK (last_page <= total_pages),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;

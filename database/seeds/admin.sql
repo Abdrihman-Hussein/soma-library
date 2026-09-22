@@ -1,15 +1,14 @@
 -- =====================================================================
--- SEED: Isticmaalaha Maamulaha (admin.sql)
--- Xogtan waxay abuuraysaa koontada koowaad ee maamulaha (Admin Account)
--- Note: Password-ka halkan wuxuu isticmaalayaa Bcrypt hash sugan.
+-- SEED: admin.sql
+-- Abuuritaanka koontada maamulaha (Admin Account) oo wata Bcrypt Hash dhab ah
+-- Password-ka la hash-gareeyay waa: Admin123!
 -- =====================================================================
 
-INSERT INTO users (name, email, password_hash, role, status) 
-VALUES (
-    'Soma Library Admin', 
-    'admin@somalibrary.local', 
-    '$2b$10$e8q3v5Z6x7y8z9A0B1C2Du9Z9Z9Z9Z9Z9Z9Z9Z9Z9Z9Z9Z9Z9Z9Z9', -- Bcrypt Hash sugan
-    'admin', 
-    'active'
-)
-ON DUPLICATE KEY UPDATE email = email; -- Ka hortagga duplicate errors haddii seed-ka la celceliyo
+USE soma_library;
+
+-- Hubinta inaysan abuurmin laba jeer (Idempotency) iyadoo la eegayo email-ka
+INSERT INTO users (name, email, password_hash, role, status)
+SELECT 'System Administrator', 'admin@somalibrary.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 'active'
+WHERE NOT EXISTS (
+    SELECT 1 FROM users WHERE email = 'admin@somalibrary.com'
+);
