@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import * as db from '../../data/db'
 import { allCategories, createBook, getBook, jacketForBook, updateBook } from '../../data/db'
 import { useApp } from '../../context/AppContext'
-import { Button, Field, Icon, Toggle } from '../../components/ui'
+import { Button, ConfirmModal, Field, Icon, Toggle } from '../../components/ui'
 
 export default function AddEditBook() {
   const { id } = useParams()
@@ -25,6 +25,7 @@ export default function AddEditBook() {
   const [pages, setPages] = useState(existing ? String(existing.pages) : '200')
   const [description, setDescription] = useState(existing?.description ?? '')
   const [status, setStatus] = useState<db.BookStatus>(existing?.status ?? 'PUBLISHED')
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   useEffect(() => {
     if (id && !existing) {
@@ -67,7 +68,8 @@ export default function AddEditBook() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <>
+      <div className="mx-auto max-w-6xl space-y-6">
       {/* Header */}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
@@ -254,13 +256,7 @@ export default function AddEditBook() {
                     <Button
                       full
                       variant="danger"
-                      onClick={() => {
-                        if (existing && window.confirm(`Delete "${existing.title}"? This cannot be undone.`)) {
-                          db.deleteBook(existing.id, actor)
-                          toast('Book deleted', 'success')
-                          navigate('/admin/books')
-                        }
-                      }}
+                      onClick={() => setConfirmDelete(true)}
                     >
                       Delete book
                     </Button>
@@ -271,6 +267,28 @@ export default function AddEditBook() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+
+      <ConfirmModal
+        open={confirmDelete}
+        title="Delete book?"
+        message={`Delete "${existing?.title ?? ''}"? This cannot be undone.`}
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        danger
+        onConfirm={() => {
+          if (!existing) {
+            setConfirmDelete(false)
+            return
+          }
+
+          db.deleteBook(existing.id, actor)
+          setConfirmDelete(false)
+          toast('Book deleted', 'success')
+          navigate('/admin/books')
+        }}
+        onCancel={() => setConfirmDelete(false)}
+      />
+    </>
   )
 }

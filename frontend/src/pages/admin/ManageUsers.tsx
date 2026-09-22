@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useApp } from '../../context/AppContext'
 import * as db from '../../data/db'
-import { Icon, StatusPill } from '../../components/ui'
+import { ConfirmModal, Icon, StatusPill } from '../../components/ui'
 
 export default function ManageUsers() {
   const { user: me, toast } = useApp()
@@ -10,6 +10,7 @@ export default function ManageUsers() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'suspended'>('all')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [tick, setTick] = useState(0)
+  const [confirmSuspend, setConfirmSuspend] = useState<string | null>(null)
 
   const actor = me?.name ?? 'Admin'
   const refresh = () => setTick((t) => t + 1)
@@ -39,7 +40,11 @@ export default function ManageUsers() {
       toast('You cannot suspend your own account', 'error')
       return
     }
-    if (status === 'suspended' && !window.confirm(`Suspend ${target.name}? They lose library access immediately.`)) return
+    if (status === 'suspended') {
+      setConfirmSuspend(userId)
+      return
+    }
+
     db.setUserStatus(userId, status, actor)
     toast(`${target.name} ${status === 'active' ? 'reinstated' : 'suspended'}`, 'success')
     refresh()
@@ -54,7 +59,8 @@ export default function ManageUsers() {
   }
 
   return (
-    <div className="space-y-4">
+    <>
+      <div className="space-y-4">
       <h1 className="text-xl font-bold text-ink">Users ({users.length})</h1>
 
       {/* Search + filters */}
@@ -239,5 +245,41 @@ export default function ManageUsers() {
         </div>
       </div>
     </div>
+
+    <ConfirmModal
+      open={confirmSuspend !== null}
+      title="Suspend user?"
+      message={
+        (() => {
+          const target = confirmSuspend
+            ? db.getUser(confirmSuspend)
+            : undefined
+
+          return target
+            ? `Suspend ${target.name}? They lose library access immediately.`
+            : 'Suspend this user? They will lose library access immediately.'
+        })()
+      }
+      confirmLabel="Suspend"
+      cancelLabel="Cancel"
+      danger
+      onConfirm={() => {
+        if (!confirmSuspend) return
+
+        const target = db.getUser(confirmSuspend)
+
+        if (!target) {
+          setConfirmSuspend(null)
+          return
+        }
+
+        db.setUserStatus(confirmSuspend, 'suspended', actor)
+        toast(`${target.name} suspended`, 'success')
+        setConfirmSuspend(null)
+        refresh()
+      }}
+      onCancel={() => setConfirmSuspend(null)}
+    />
+    </>
   )
 }

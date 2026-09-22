@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useApp } from '../../context/AppContext'
 import * as db from '../../data/db'
-import { StatusPill } from '../../components/ui'
+import { ConfirmModal, StatusPill } from '../../components/ui'
 
 export default function PaymentsAdmin() {
   const { user, toast } = useApp()
@@ -9,6 +9,11 @@ export default function PaymentsAdmin() {
   const [typeFilter, setTypeFilter] = useState<'all' | 'SUBSCRIPTION' | 'BOOK_PURCHASE'>('all')
   const [statusFilter, setStatusFilter] = useState<'all' | 'SUCCESS' | 'FAILED' | 'REFUNDED'>('all')
   const actor = user?.name ?? 'Admin'
+  const [confirmRefund, setConfirmRefund] = useState<{
+    id: string
+    ref: string
+    amount: number
+  } | null>(null)
   const refresh = () => setTick((t) => t + 1)
 
   const payments = db.allPayments()
@@ -24,14 +29,21 @@ export default function PaymentsAdmin() {
   const refunded = payments.filter((p) => p.status === 'REFUNDED')
 
   const onRefund = (id: string, ref: string, amount: number) => {
-    if (!window.confirm(`Refund ${ref} ($${amount.toFixed(2)})? The user keeps or loses access per your policy — this marks the payment refunded.`)) return
-    db.refundPayment(id, actor)
-    toast(`${ref} refunded`, 'success')
+    setConfirmRefund({ id, ref, amount })
+  }
+
+  const confirmRefundPayment = () => {
+    if (!confirmRefund) return
+
+    db.refundPayment(confirmRefund.id, actor)
+    toast(`${confirmRefund.ref} refunded`, 'success')
+    setConfirmRefund(null)
     refresh()
   }
 
   return (
-    <div className="space-y-4">
+    <>
+      <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-ink">Payments</h1>
         <div className="flex gap-2">
@@ -127,5 +139,21 @@ export default function PaymentsAdmin() {
         </div>
       </div>
     </div>
+
+      <ConfirmModal
+        open={confirmRefund !== null}
+        title="Refund payment?"
+        message={
+          confirmRefund
+            ? `Refund ${confirmRefund.ref} ($${confirmRefund.amount.toFixed(2)})? This will mark the payment as refunded.`
+            : 'Refund this payment?'
+        }
+        confirmLabel="Refund"
+        cancelLabel="Cancel"
+        danger
+        onConfirm={confirmRefundPayment}
+        onCancel={() => setConfirmRefund(null)}
+      />
+    </>
   )
 }
